@@ -1,2 +1,9 @@
-arg = {a1, a2, a3}
+arg = {Lua, is, great}
 @test/lib.lua says: Hello World
+Traceback test
+stack traceback:
+	test/lib.lua:25: in function 'lib.hello'
+	test/main.lua:26: in main chunk
+	(...tail calls...)
+	[C]: in function 'require'
+	?: in main chunk

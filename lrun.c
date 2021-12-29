@@ -17,7 +17,6 @@
  * http://cdelord.fr/lapp
  */
 
-#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,13 +26,9 @@
 #include "lauxlib.h"
 
 #include "header.h"
+#include "tools.h"
 
-__attribute__((noreturn))
-static void fatal(const char* message)
-{
-    fprintf(stderr,"%s\n", message);
-    exit(EXIT_FAILURE);
-}
+#include "lz4.h"
 
 static void createargtable(lua_State *L, const char **argv, int argc)
 {
@@ -50,28 +45,37 @@ static void createargtable(lua_State *L, const char **argv, int argc)
 int main(int argc, const char *argv[])
 {
     FILE *f = fopen(argv[0], "rb");
-    assert(f != NULL);
+    if (f == NULL) error(argv[0], "can not be open");
+
     t_header header;
-    fseek(f, 0, SEEK_END);
-    const long end = ftell(f) - (long)sizeof(header);
-    fseek(f, end, SEEK_SET);
-    assert(fread(&header, sizeof(header), 1, f) == 1);
-    if (memcmp(header.magic, MAGIC, sizeof(header.magic)) != 0)
-    {
-        fprintf(stderr, "%s: No Lua application found\n", argv[0]);
-        exit(EXIT_FAILURE);
-    }
-    fseek(f, (long)header.start, SEEK_SET);
-    char *chunk = malloc(header.size);
-    assert(chunk != NULL);
-    assert(fread(chunk, header.size, 1, f) == 1);
+    fseek(f, -(long)sizeof(header), SEEK_END);
+    if (fread(&header, sizeof(header), 1, f) != 1) error(argv[0], "can not be read");
+    if (memcmp(header.magic, LAPP_SIGNATURE, sizeof(header.magic)) != 0) error(argv[0], "Lua application not found");
+    fseek(f, -(long)(header.compressed_size + sizeof(header)), SEEK_END);
+    char *compressed_chunk = safe_malloc(header.compressed_size);
+    if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) error(argv[0], "Can not read Lua chunk");
     fclose(f);
+
+    char *chunk = safe_malloc(header.uncompressed_size);
+    const int uncompressed_size = LZ4_decompress_safe(
+            compressed_chunk,
+            chunk,
+            (int)header.compressed_size,
+            (int)header.uncompressed_size);
+    if (uncompressed_size < 0 || (size_t)uncompressed_size != header.uncompressed_size)
+    {
+        error(argv[0], "Can not uncompress Lua chunk");
+    }
+    for (size_t i = 1; i < (size_t)uncompressed_size; i++)
+    {
+        chunk[i] += chunk[i-1];
+    }
 
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
     createargtable(L, argv, argc);
-    if (luaL_loadbuffer(L, chunk, header.size, NULL) != LUA_OK) fatal(lua_tostring(L, -1));
+    if (luaL_loadbuffer(L, chunk, header.uncompressed_size, NULL) != LUA_OK) error(argv[0], lua_tostring(L, -1));
     free(chunk);
-    if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK) fatal(lua_tostring(L, -1));
+    if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK) error(argv[0], lua_tostring(L, -1));
     lua_close(L);
 }

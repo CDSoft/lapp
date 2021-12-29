@@ -1,13 +1,25 @@
 # Lua Application packager
 
-`lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.3)
-and produces a standalone executable for Linux and Windows.
+`lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.3) and
+produces a standalone executable for Linux and Windows.
 
 `lapp` runs on Linux and produces Linux binaries.
 
 `lapp.exe` runs on Windows or on Linux with Wine and produces Windows binaries.
 
 No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
+
+## compilation
+
+Get `lapp` sources on GitHub: <https://gitbuh.com/CDSoft/lapp>, download
+submodules and run `make`:
+
+```sh
+$ git clone https://github.com/CDSoft/lapp
+$ cd lapp
+$ git submodule sync && git submodule update --init --recursive
+$ make
+```
 
 ## Installation
 
@@ -17,6 +29,14 @@ $ make install    # install lapp and lapp.exe to ~/.local/bin
 
 `lapp` and `lapp.exe` are single autonomous executables.
 They do not need to be installed and can be copied anywhere you want.
+
+## Precompiled binaries
+
+It is usually highly recommended to build `lapp` from sources.
+Precompiled binaries of the latest version are available here:
+
+- Linux: [lapp](http://cdelord.fr/lapp/lapp)
+- Windows: [lapp.exe](http://cdelord.fr/lapp/lapp.exe)
 
 ## Usage
 
@@ -45,16 +65,31 @@ Running `linux_executable` is equivalent to running `lua main.lua`.
 Cross compilation from Linux:
 
 ```
-wine lapp.exe main.lua lib1.lua lib2.lua -w -o windows_executable.exe
+wine lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe
 ```
 
 Native compilation from Windows:
 
 ```
-lapp.exe main.lua lib1.lua lib2.lua -w -o windows_executable.exe
+lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe
 ```
 
 Running `windows_executable.exe` is equivalent to running `lua.exe main.lua`.
+
+## Dependencies
+
+`lapp` requires some external softwares. Some are included in its repository.
+
+- [wget](https://www.gnu.org/software/wget/): to download the Lua sources
+- [Lua 5.4.3](https://lua.org): the sources of Lua are downloaded by Makefile
+  when `lapp` is compiled
+- [LZ4](https://github.com/lz4/lz4): the LZ4 compression library is a submodule
+  of `lapp`
+- [clang](https://clang.llvm.org/): used to compile Lua and `lapp` for Linux
+- [MinGW-w64](https://www.mingw-w64.org/): Linux port of the Windows MinGW
+  compiler used to compile the Windows version of `lapp.exe`
+- [Wine](https://www.winehq.org/): used to test the Windows binaries on Linux
+- and a decent programming environment on Linux...
 
 ## License
 

@@ -17,15 +17,44 @@
  * http://cdelord.fr/lapp
  */
 
+/* A compiled Lua application is made of three parts:
+ *  - Lua runtime (see lrun.c)
+ *  - compiled and compressed Lua chunk
+ *  - header describing the Lua chunk
+ *
+ *  +-----------------------------------+
+ *  | Lua runtime (lrun.c)              |
+ *  |                                   |
+ *  |                                   |
+ *  +-----------------------------------+  <--+
+ *  | Lua chunk                         |     |
+ *  | compiled with luaU_dump           |     |
+ *  | compressed with LZ4               |     |
+ *  |                                   |     |
+ *  |                                   |     |
+ *  |                                   |     |
+ *  +-----------------------------------+  <--+
+ *  | header                            |     |
+ *  | .compressed_size: size of the     | ----+
+ *  |       Lua chunk in the file       |
+ *  | .uncompressed_size: size of the   |
+ *  |       Lua chunk after             |
+ *  |       decompression               |
+ *  | .magic: lapp signature            |
+ *  +-----------------------------------+
+ */
+
 #pragma once
 
 #include <stdlib.h>
 
-typedef struct
-{
-    size_t start;
-    size_t size;
-    char magic[8];
-} t_header;
+#include "lapp_version.h"
 
-#define MAGIC "LUA_APP\0"
+#define LAPP_SIGNATURE "\x1b" "Compiled with lapp "LAPP_VERSION" (http://cdelord.fr/lapp)" "\0"
+
+typedef struct __attribute__((packed))
+{
+    size_t compressed_size;
+    size_t uncompressed_size;
+    char magic[sizeof(LAPP_SIGNATURE)-1];
+} t_header;
