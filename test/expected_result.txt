@@ -1,0 +1,2 @@
+arg = {a1, a2, a3}
+@test/lib.lua says: Hello World
