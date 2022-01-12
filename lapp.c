@@ -228,6 +228,7 @@ int main(int argc, const char *argv[])
         buffer_cat(&b, "\",\n");
         chunk_free(&chunk);
     }
+    if (main_name == NULL) error(argv[0], usage);
     buffer_cat(&b, "}\n");
     buffer_cat(&b,
         "table.insert(package.searchers, 1, function(name)\n"
