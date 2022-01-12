@@ -10,35 +10,27 @@ void error(const char *what, const char *message)
     exit(EXIT_FAILURE);
 }
 
-void *safe_malloc(size_t size)
+static inline void *check_ptr(void *ptr)
 {
-    void *ptr = malloc(size);
     if (ptr == NULL)
     {
         fprintf(stderr, "Memory allocation error\n");
         exit(EXIT_FAILURE);
     }
     return ptr;
+}
+
+void *safe_malloc(size_t size)
+{
+    return check_ptr(malloc(size));
 }
 
 void *safe_realloc(void *ptr, size_t size)
 {
-    ptr = realloc(ptr, size);
-    if (ptr == NULL)
-    {
-        fprintf(stderr, "Memory allocation error\n");
-        exit(EXIT_FAILURE);
-    }
-    return ptr;
+    return check_ptr(realloc(ptr, size));
 }
 
 char *safe_strdup(const char *s)
 {
-    char *ptr = strdup(s);
-    if (ptr == NULL)
-    {
-        fprintf(stderr, "Memory allocation error\n");
-        exit(EXIT_FAILURE);
-    }
-    return ptr;
+    return check_ptr(strdup(s));
 }

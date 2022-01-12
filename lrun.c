@@ -66,6 +66,7 @@ int main(int argc, const char *argv[])
     {
         error(argv[0], "Can not uncompress Lua chunk");
     }
+    free(compressed_chunk);
     for (size_t i = 1; i < (size_t)uncompressed_size; i++)
     {
         chunk[i] += chunk[i-1];

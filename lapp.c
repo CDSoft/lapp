@@ -56,12 +56,25 @@ typedef struct
     int compressed_size;
 } t_chunk;
 
+static const t_chunk empty_chunk =
+{
+    .script_name = NULL,
+    .lib_name = NULL,
+    .source = NULL,
+    .chunk = NULL,
+    .size = 0,
+    .allocated = 0,
+    .compressed_chunk = NULL,
+    .compressed_size = 0,
+};
+
 typedef struct
 {
     char *data;
     size_t size;
     size_t allocated;
 } t_buffer;
+
 
 static void buffer_init(t_buffer *buf)
 {
@@ -78,12 +91,10 @@ static void buffer_free(t_buffer *buf)
 static void buffer_cat(t_buffer *buf, const char *s)
 {
     const size_t n = strlen(s);
-    if (buf->size + n + 1 >= buf->allocated)
+    const size_t required = buf->size + n + 1;
+    if (required >= buf->allocated)
     {
-        while (buf->size + n + 1 >= buf->allocated)
-        {
-            buf->allocated *= 2;
-        }
+        buf->allocated = 2*required;
         buf->data = safe_realloc(buf->data, buf->allocated * sizeof(char));
     }
     strcpy(&buf->data[buf->size], s);
@@ -109,17 +120,10 @@ static int writer(lua_State *L __attribute__((unused)), const void *p, size_t si
     t_chunk *chunk = u;
     if (size > 0)
     {
-        if (chunk->chunk == NULL)
+        const size_t required = chunk->size + size + 1;
+        if (required >= chunk->allocated)
         {
-            chunk->allocated = 4096;
-            chunk->chunk = safe_malloc(chunk->allocated);
-        }
-        if (chunk->size + size + 1 >= chunk->allocated)
-        {
-            while (chunk->size + size + 1 >= chunk->allocated)
-            {
-                chunk->allocated *= 2;
-            }
+            chunk->allocated = 2*required;
             chunk->chunk = safe_realloc(chunk->chunk, chunk->allocated);
         }
         memcpy(&chunk->chunk[chunk->size], p, size);
@@ -170,6 +174,14 @@ static void compress_chunk(t_chunk *chunk)
     printf("    compressed chunk: %6d bytes\n", chunk->compressed_size);
 }
 
+static void chunk_free(t_chunk *chunk)
+{
+    if (chunk->script_name != NULL) free(chunk->script_name);
+    if (chunk->lib_name != NULL) free(chunk->lib_name);
+    if (chunk->chunk != NULL) free(chunk->chunk);
+    if (chunk->compressed_chunk != NULL) free(chunk->compressed_chunk);
+}
+
 int main(int argc, const char *argv[])
 {
     printf("%s\n", WELCOME);
@@ -194,7 +206,7 @@ int main(int argc, const char *argv[])
 
         printf("%s:\n", argv[i]);
 
-        t_chunk chunk;
+        t_chunk chunk = empty_chunk;
         chunk.script_name = safe_strdup(argv[i]);
         chunk.lib_name = safe_strdup(basename(chunk.script_name));
         strip_ext(chunk.lib_name);
@@ -214,9 +226,7 @@ int main(int argc, const char *argv[])
             buffer_cat(&b, c);
         }
         buffer_cat(&b, "\",\n");
-        free(chunk.script_name);
-        free(chunk.lib_name);
-        if (chunk.size > 0) free(chunk.chunk);
+        chunk_free(&chunk);
     }
     buffer_cat(&b, "}\n");
     buffer_cat(&b,
@@ -233,10 +243,9 @@ int main(int argc, const char *argv[])
         printf("\n");
         printf("%s:\n", output);
 
-        t_chunk main_chunk = {
-            .source = b.data,
-            .size = 0,
-        };
+        t_chunk main_chunk = empty_chunk;
+        main_chunk.source = b.data;
+        main_chunk.size = 0;
         compile_string(&main_chunk, 1);
         compress_chunk(&main_chunk);
 
@@ -255,6 +264,8 @@ int main(int argc, const char *argv[])
         printf("    Header          : %6zu bytes\n", sizeof(header));
         printf("    Lua runtime     : %6zu bytes\n", sizeof(lrun));
         printf("    Total size      : %6zu bytes\n", sizeof(lrun) + (size_t)main_chunk.compressed_size + sizeof(header));
+
+        chunk_free(&main_chunk);
     }
 
     buffer_free(&b);
