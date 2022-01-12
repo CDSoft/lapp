@@ -53,7 +53,7 @@ typedef struct
     size_t size;
     size_t allocated;
     char *compressed_chunk;
-    int compressed_size;
+    size_t compressed_size;
 } t_chunk;
 
 static const t_chunk empty_chunk =
@@ -164,14 +164,15 @@ static void compress_chunk(t_chunk *chunk)
     }
     const int max_size = LZ4_compressBound((int)chunk->size);
     chunk->compressed_chunk = safe_malloc((size_t)max_size);
-    chunk->compressed_size = LZ4_compress_HC(
+    const int compressed_size = LZ4_compress_HC(
             chunk->chunk,
             chunk->compressed_chunk,
             (int)chunk->size,
             max_size,
             LZ4HC_CLEVEL_MAX);
-    if (chunk->compressed_size < 0) error(chunk->script_name, "Can not compress Lua chunk");
-    printf("    compressed chunk: %6d bytes\n", chunk->compressed_size);
+    if (compressed_size < 0) error(chunk->script_name, "Can not compress Lua chunk");
+    chunk->compressed_size = (size_t)compressed_size;
+    printf("    compressed chunk: %6zu bytes\n", chunk->compressed_size);
 }
 
 static void chunk_free(t_chunk *chunk)
@@ -254,17 +255,17 @@ int main(int argc, const char *argv[])
         {
             .magic = LAPP_SIGNATURE,
             .uncompressed_size = main_chunk.size,
-            .compressed_size = (size_t)main_chunk.compressed_size,
+            .compressed_size = main_chunk.compressed_size,
         };
         FILE *f = fopen(output, "wb");
         fwrite(lrun, sizeof(lrun[0]), sizeof(lrun), f);
-        fwrite(main_chunk.compressed_chunk, sizeof(main_chunk.chunk[0]), (size_t)main_chunk.compressed_size, f);
+        fwrite(main_chunk.compressed_chunk, sizeof(main_chunk.chunk[0]), main_chunk.compressed_size, f);
         fwrite(&header, sizeof(header), 1, f);
         fclose(f);
         chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
         printf("    Header          : %6zu bytes\n", sizeof(header));
         printf("    Lua runtime     : %6zu bytes\n", sizeof(lrun));
-        printf("    Total size      : %6zu bytes\n", sizeof(lrun) + (size_t)main_chunk.compressed_size + sizeof(header));
+        printf("    Total size      : %6zu bytes\n", sizeof(lrun) + main_chunk.compressed_size + sizeof(header));
 
         chunk_free(&main_chunk);
     }
