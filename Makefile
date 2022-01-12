@@ -29,8 +29,9 @@ LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
 LZ4_INC = external/lz4/lib
 
 CC_OPT = -Os -flto -s
+CC_OPT += -std=gnu99
 CC_OPT += -ffunction-sections -fdata-sections -Wl,-gc-sections
-CC_OPT += -Wall -Wextra -pedantic
+CC_OPT += -Wall -Wextra -pedantic -Werror
 CC_OPT += -Wstrict-prototypes
 CC_OPT += -Wmissing-field-initializers
 CC_OPT += -Wmissing-prototypes
@@ -40,7 +41,7 @@ CC_OPT += -Werror=switch-enum
 LUA_CC_OPT = -Os -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
 
-CC = clang
+CC = gcc
 LUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/lua
 LIBLUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/liblua.a
 LAPP = $(BUILD)/linux/lapp
