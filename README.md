@@ -9,7 +9,7 @@ produces a standalone executable for Linux and Windows.
 
 No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 
-## compilation
+## Compilation
 
 Get `lapp` sources on GitHub: <https://gitbuh.com/CDSoft/lapp>, download
 submodules and run `make`:
@@ -85,7 +85,7 @@ Running `windows_executable.exe` is equivalent to running `lua.exe main.lua`.
   when `lapp` is compiled
 - [LZ4](https://github.com/lz4/lz4): the LZ4 compression library is a submodule
   of `lapp`
-- [clang](https://clang.llvm.org/): used to compile Lua and `lapp` for Linux
+- [gcc](https://gcc.gnu.org/): used to compile Lua and `lapp` for Linux
 - [MinGW-w64](https://www.mingw-w64.org/): Linux port of the Windows MinGW
   compiler used to compile the Windows version of `lapp.exe`
 - [Wine](https://www.winehq.org/): used to test the Windows binaries on Linux
