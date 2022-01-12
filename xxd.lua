@@ -24,11 +24,11 @@ local output = arg[3]
 
 local bytes = {"const unsigned char ", name, "[] = {"}
 local n = 0
-assert(io.open(input, "rb"):read("a"):gsub(".", function(c)
+local _ = io.open(input, "rb"):read("a"):gsub(".", function(c)
     if n % 16 == 0 then table.insert(bytes, "\n") end
     n = n + 1
     table.insert(bytes, (" 0x%02X,"):format(c:byte()))
-end))
+end)
 if n % 16 ~= 1 then table.insert(bytes, "\n") end
 table.insert(bytes, "};\n")
 
