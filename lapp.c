@@ -22,6 +22,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 
 #include "lauxlib.h"
@@ -42,7 +43,8 @@
 
 static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <executable name>";
 
-#include "lrun_blob.c"
+#include "linux/lrun_blob.c"
+#include "win/lrun_blob.c"
 
 typedef struct
 {
@@ -99,18 +101,6 @@ static void buffer_cat(t_buffer *buf, const char *s)
     }
     strcpy(&buf->data[buf->size], s);
     buf->size += n;
-}
-
-static void strip_ext(char *name)
-{
-    for (size_t i = strlen(name); i > 0; i--)
-    {
-        if (name[i] == '.')
-        {
-            name[i] = '\0';
-            break;
-        }
-    }
 }
 
 #define toproto(L, i) getproto(s2v(L->top+(i)))
@@ -245,6 +235,25 @@ int main(int argc, const char *argv[])
         printf("\n");
         printf("%s:\n", output);
 
+        const unsigned char *lrun;
+        size_t lrun_size;
+        const char *target;
+
+        if (strncasecmp(ext(output), ".exe", 4) == 0)
+        {
+            lrun = lrun_windows;
+            lrun_size = sizeof(lrun_windows);
+            target = "Windows";
+        }
+        else
+        {
+            lrun = lrun_linux;
+            lrun_size = sizeof(lrun_linux);
+            target = "Linux";
+        }
+
+        printf("    Target          : %s\n", target);
+
         t_chunk main_chunk = empty_chunk;
         main_chunk.source = b.data;
         main_chunk.size = 0;
@@ -258,14 +267,14 @@ int main(int argc, const char *argv[])
             .compressed_size = main_chunk.compressed_size,
         };
         FILE *f = fopen(output, "wb");
-        fwrite(lrun, sizeof(lrun[0]), sizeof(lrun), f);
+        fwrite(lrun, sizeof(lrun[0]), lrun_size, f);
         fwrite(main_chunk.compressed_chunk, sizeof(main_chunk.chunk[0]), main_chunk.compressed_size, f);
         fwrite(&header, sizeof(header), 1, f);
         fclose(f);
         chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
         printf("    Header          : %6zu bytes\n", sizeof(header));
-        printf("    Lua runtime     : %6zu bytes\n", sizeof(lrun));
-        printf("    Total size      : %6zu bytes\n", sizeof(lrun) + main_chunk.compressed_size + sizeof(header));
+        printf("    Lua runtime     : %6zu bytes\n", lrun_size);
+        printf("    Total size      : %6zu bytes\n", lrun_size + main_chunk.compressed_size + sizeof(header));
 
         chunk_free(&main_chunk);
     }

@@ -34,3 +34,26 @@ char *safe_strdup(const char *s)
 {
     return check_ptr(strdup(s));
 }
+
+const char *last_index(const char *s, char c)
+{
+    const char *i = NULL;
+    const char *p = s;
+    while (*p != '\0')
+    {
+        if (*p == c) i = p;
+        p++;
+    }
+    if (i == NULL) i = p;
+    return i;
+}
+
+const char *ext(const char *name)
+{
+    return last_index(name, '.');
+}
+
+void strip_ext(char *name)
+{
+    *(char*)ext(name) = '\0';
+}

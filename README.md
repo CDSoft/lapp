@@ -3,9 +3,9 @@
 `lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.3) and
 produces a standalone executable for Linux and Windows.
 
-`lapp` runs on Linux and produces Linux binaries.
+`lapp` runs on Linux and `lapp.exe` on Windows.
 
-`lapp.exe` runs on Windows or on Linux with Wine and produces Windows binaries.
+`lapp` and `lapp.exe` can produce both Linux and Windows binaries.
 
 No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 
@@ -50,29 +50,19 @@ Options:
 The main script shall be the first one.
 Other scripts are libraries that can be loaded by the main script.
 
+If `OUTPUT` ends with `.exe` then `lapp` produces a Windows binary.
+Otherwise the output is assumed to be a Linux executable.
+
 ## Examples
 
-### Linux executable
-
-```
-lapp main.lua lib1.lua lib2.lua -o linux_executable
-```
+| Host    | Target      | Command                                                            |
+| ------- | ----------- | ------------------------------------------------------------------ |
+| Linux   | Linux       | `lapp main.lua lib1.lua lib2.lua -o linux_executable`              |
+| Linux   | Windows     | `lapp main.lua lib1.lua lib2.lua -o windows_executable.exe`        |
+| Windows | Linux       | `lapp.exe main.lua lib1.lua lib2.lua -o linux_executable`          |
+| Windows | Windows     | `lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe`    |
 
 Running `linux_executable` is equivalent to running `lua main.lua`.
-
-### Windows executable
-
-Cross compilation from Linux:
-
-```
-wine lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe
-```
-
-Native compilation from Windows:
-
-```
-lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe
-```
 
 Running `windows_executable.exe` is equivalent to running `lua.exe main.lua`.
 
