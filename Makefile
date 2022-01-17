@@ -62,46 +62,61 @@ MINGW_CC_LIB = -lm
 
 .PHONY: all test linux windows
 
+.SECONDARY:
+
 all: compile_flags.txt
 all: linux
 all: windows
 all: test
 
-linux: $(BUILD)/lapp_version.h
-linux: $(LUA) $(LIBLUA) $(LIBLUAW) $(LAPP)
+linux: $(LAPP)
 
-windows: $(BUILD)/lapp_version.h
-windows: $(LUA) $(LIBLUA) $(LIBLUAW) $(LAPPW)
+windows: $(LAPPW)
 
 clean:
 	rm -rf $(BUILD)
 
-install: $(BUILD)/lapp_version.h $(LAPP) $(LAPPW)
+install: $(LAPP) $(LAPPW)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
 	install -T $(LAPPW) $(INSTALL_PATH)/$(notdir $(LAPPW))
 
-test: $(LAPP) $(LAPPW) test/main.lua test/lib.lua test/expected_result.txt
+test: $(BUILD)/test/ok.host_linux_target_linux
+test: $(BUILD)/test/ok.host_linux_target_windows.exe
+test: $(BUILD)/test/ok.host_windows_target_linux
+test: $(BUILD)/test/ok.host_windows_target_windows.exe
+test: $(BUILD)/test/same.linux_native_and_cross
+test: $(BUILD)/test/same.windows.exe_native_and_cross
+
+TEST_SOURCES = test/main.lua test/lib.lua
+
+$(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
+	diff $^
+	touch $@
+
+# Test executables
+
+$(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
 	@mkdir -p $(BUILD)/test
+	$(LAPP) $(TEST_SOURCES) -o $@
 
-	# Linux test
-	$(LAPP) test/main.lua test/lib.lua -o $(BUILD)/test/lapp_test
-	$(BUILD)/test/lapp_test Lua is great > $(BUILD)/test/lapp_test.res
-	diff test/expected_result.txt $(BUILD)/test/lapp_test.res
+$(BUILD)/test/bin.host_windows_target_%: $(LAPPW) $(TEST_SOURCES)
+	@mkdir -p $(BUILD)/test
+	wine $(LAPPW) $(TEST_SOURCES) -o $@
+	chmod +x $@
 
-	# Windows test (cross compilation)
-	$(LAPP) test/main.lua test/lib.lua -o $(BUILD)/test/lapp_test.exe
-	wine $(BUILD)/test/lapp_test.exe Lua is great > $(BUILD)/test/lapp_test_win.res
-	dos2unix $(BUILD)/test/lapp_test_win.res
-	diff test/expected_result.txt $(BUILD)/test/lapp_test_win.res
+# Test results
 
-	# Windows test (with Wine)
-	wine $(LAPPW) test/main.lua test/lib.lua -o $(BUILD)/test/lapp_wine_test.exe
-	wine $(BUILD)/test/lapp_wine_test.exe Lua is great > $(BUILD)/test/lapp_wine_test_win.res
-	dos2unix $(BUILD)/test/lapp_wine_test_win.res
-	diff test/expected_result.txt $(BUILD)/test/lapp_wine_test_win.res
+$(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
+	$^ Lua is great > $@
 
-	# Cross compilation and Wine compilation shall produce the same executable
-	diff -b $(BUILD)/test/lapp_test.exe $(BUILD)/test/lapp_wine_test.exe
+$(BUILD)/test/res.host_%_target_windows.exe: $(BUILD)/test/bin.host_%_target_windows.exe
+	wine $^ Lua is great | dos2unix > $@
+
+# Native and cross compilations shall produce the same executable
+
+$(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(BUILD)/test/bin.host_windows_target_%
+	diff $^
+	touch $@
 
 compile_flags.txt: Makefile
 	@(  echo "-Weverything";               \
@@ -137,16 +152,21 @@ $(LUA_ARCHIVE):
 	@mkdir -p $(dir $@)
 	wget -c $(LUA_URL) -O $(LUA_ARCHIVE)
 
-$(LAPP): lapp.c $(LIBLUA) $(BUILD)/linux/lrun_blob.c $(BUILD)/win/lrun_blob.c tools.c
-	$(CC) $(CC_OPT) $(CC_INC) $(filter-out %/lrun_blob.c,$^) $(LZ4_SRC) $(CC_LIB) -o $@
+HEADERS = header.h $(BUILD)/lapp_version.h
+LRUN_SOURCES = lrun.c tools.c
+LRUN_BLOB_SOURCES = $(BUILD)/linux/lrun_blob.c $(BUILD)/win/lrun_blob.c
+LAPP_SOURCES = lapp.c tools.c
 
-$(LAPPW): lapp.c $(LIBLUAW) $(BUILD)/linux/lrun_blob.c $(BUILD)/win/lrun_blob.c tools.c
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $(filter-out %/lrun_blob.c,$^) $(LZ4_SRC) $(MINGW_CC_LIB) -o $@
+$(LAPP): $(LAPP_SOURCES) $(LRUN_BLOB_SOURCES) $(HEADERS) $(LIBLUA)
+	$(CC) $(CC_OPT) $(CC_INC) $(LAPP_SOURCES) $(LZ4_SRC) $(LIBLUA) $(CC_LIB) -o $@
 
-$(BUILD)/linux/lrun_blob.c: lrun.c tools.c
-	$(CC) $(CC_OPT) $(CC_INC) $^ $(LZ4_SRC) $(LIBLUA) $(CC_LIB) -o $(dir $@)/lrun
+$(LAPPW): $(LAPP_SOURCES) $(LRUN_BLOB_SOURCES) $(HEADERS) $(LIBLUAW)
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $(LAPP_SOURCES) $(LZ4_SRC) $(LIBLUAW) $(MINGW_CC_LIB) -o $@
+
+$(BUILD)/linux/lrun_blob.c: $(LRUN_SOURCES) $(HEADERS) $(LUA) $(LIBLUA)
+	$(CC) $(CC_OPT) $(CC_INC) $(LRUN_SOURCES) $(LZ4_SRC) $(LIBLUA) $(CC_LIB) -o $(dir $@)/lrun
 	$(LUA) xxd.lua lrun_linux $(dir $@)/lrun $@
 
-$(BUILD)/win/lrun_blob.c: lrun.c tools.c
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(LZ4_SRC) $(LIBLUAW) $(MINGW_CC_LIB) -o $(dir $@)/lrun.exe
+$(BUILD)/win/lrun_blob.c: $(LRUN_SOURCES) $(HEADERS) $(LUA) $(LIBLUAW)
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $(LRUN_SOURCES) $(LZ4_SRC) $(LIBLUAW) $(MINGW_CC_LIB) -o $(dir $@)/lrun.exe
 	$(LUA) xxd.lua lrun_windows $(dir $@)/lrun.exe $@
