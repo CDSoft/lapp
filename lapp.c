@@ -43,8 +43,10 @@
 
 static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <executable name>";
 
-#include "linux/lrun_blob.c"
-#include "win/lrun_blob.c"
+extern const unsigned char lrun_linux[];
+extern const unsigned int lrun_linux_size;
+extern const unsigned char lrun_windows[];
+extern const unsigned int lrun_windows_size;
 
 typedef struct
 {
@@ -242,13 +244,13 @@ int main(int argc, const char *argv[])
         if (strncasecmp(ext(output), ".exe", 4) == 0)
         {
             lrun = lrun_windows;
-            lrun_size = sizeof(lrun_windows);
+            lrun_size = lrun_windows_size;
             target = "Windows";
         }
         else
         {
             lrun = lrun_linux;
-            lrun_size = sizeof(lrun_linux);
+            lrun_size = lrun_linux_size;
             target = "Linux";
         }
 

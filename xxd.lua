@@ -31,5 +31,10 @@ local _ = io.open(input, "rb"):read("a"):gsub(".", function(c)
 end)
 if n % 16 ~= 1 then table.insert(bytes, "\n") end
 table.insert(bytes, "};\n")
+table.insert(bytes, "const unsigned int ")
+table.insert(bytes, name.."_size")
+table.insert(bytes, " = ")
+table.insert(bytes, n)
+table.insert(bytes, ";\n")
 
 io.open(output, "wb"):write(table.concat(bytes))

@@ -44,6 +44,7 @@ LUA_LD_OPT = -flto -s -Wl,-gc-sections
 CC = gcc
 LUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/lua
 LIBLUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/liblua.a
+LRUN = $(BUILD)/linux/lrun
 LAPP = $(BUILD)/linux/lapp
 CC_INC = -I$(BUILD)
 CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
@@ -53,6 +54,7 @@ CC_LIB = -lm -ldl
 
 MINGW_CC = x86_64-w64-mingw32-gcc
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
+LRUNW = $(BUILD)/win/lrun.exe
 LAPPW = $(BUILD)/win/lapp.exe
 MINGW_CC_INC = -I$(BUILD)
 MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
@@ -96,11 +98,11 @@ $(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
 # Test executables
 
 $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
-	@mkdir -p $(BUILD)/test
+	@mkdir -p $(dir $@)
 	$(LAPP) $(TEST_SOURCES) -o $@
 
 $(BUILD)/test/bin.host_windows_target_%: $(LAPPW) $(TEST_SOURCES)
-	@mkdir -p $(BUILD)/test
+	@mkdir -p $(dir $@)
 	wine $(LAPPW) $(TEST_SOURCES) -o $@
 	chmod +x $@
 
@@ -118,17 +120,23 @@ $(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(B
 	diff $^
 	touch $@
 
+# clangd configuration file
+
 compile_flags.txt: Makefile
 	@(  echo "-Weverything";               \
 	    echo "$(CC_OPT)" | tr " " "\n";    \
 	    echo "$(CC_INC)" | tr " " "\n";    \
 	) > $@
 
-$(BUILD)/lapp_version.h: Makefile
+# current git version based on the last tag
+
+$(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
 	@mkdir -p $(dir $@)
 	@(  echo "#pragma once";                                    \
 	    echo "#define LAPP_VERSION \"`git describe --tags`\"";  \
 	) > $@
+
+# Lua library
 
 $(LUA) $(LIBLUA) &: $(LUA_ARCHIVE)
 	@mkdir -p $(BUILD)/linux
@@ -152,21 +160,69 @@ $(LUA_ARCHIVE):
 	@mkdir -p $(dir $@)
 	wget -c $(LUA_URL) -O $(LUA_ARCHIVE)
 
-HEADERS = header.h $(BUILD)/lapp_version.h
+# lapp compilation
+
+VERSION_H = $(BUILD)/lapp_version.h
 LRUN_SOURCES = lrun.c tools.c
-LRUN_BLOB_SOURCES = $(BUILD)/linux/lrun_blob.c $(BUILD)/win/lrun_blob.c
 LAPP_SOURCES = lapp.c tools.c
 
-$(LAPP): $(LAPP_SOURCES) $(LRUN_BLOB_SOURCES) $(HEADERS) $(LIBLUA)
-	$(CC) $(CC_OPT) $(CC_INC) $(LAPP_SOURCES) $(LZ4_SRC) $(LIBLUA) $(CC_LIB) -o $@
+LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES))
+LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES))
 
-$(LAPPW): $(LAPP_SOURCES) $(LRUN_BLOB_SOURCES) $(HEADERS) $(LIBLUAW)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $(LAPP_SOURCES) $(LZ4_SRC) $(LIBLUAW) $(MINGW_CC_LIB) -o $@
+LAPP_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LAPP_SOURCES))
+LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o $(BUILD)/linux/lrun_windows_blob.o
 
-$(BUILD)/linux/lrun_blob.c: $(LRUN_SOURCES) $(HEADERS) $(LUA) $(LIBLUA)
-	$(CC) $(CC_OPT) $(CC_INC) $(LRUN_SOURCES) $(LZ4_SRC) $(LIBLUA) $(CC_LIB) -o $(dir $@)/lrun
-	$(LUA) xxd.lua lrun_linux $(dir $@)/lrun $@
+LAPPW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LAPP_SOURCES))
+LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o $(BUILD)/win/lrun_windows_blob.o
 
-$(BUILD)/win/lrun_blob.c: $(LRUN_SOURCES) $(HEADERS) $(LUA) $(LIBLUAW)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $(LRUN_SOURCES) $(LZ4_SRC) $(LIBLUAW) $(MINGW_CC_LIB) -o $(dir $@)/lrun.exe
-	$(LUA) xxd.lua lrun_windows $(dir $@)/lrun.exe $@
+LZ4_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LZ4_SRC))
+LZ4W_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LZ4_SRC))
+
+# Compilation
+
+$(BUILD)/linux/%.o: %.c $(LIBLUA) $(VERSION_H)
+	@mkdir -p $(dir $@)
+	$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
+
+$(BUILD)/win/%.o: %.c $(LIBLUAW) $(VERSION_H)
+	@mkdir -p $(dir $@)
+	$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+
+# Compilation of the generated source files
+
+$(BUILD)/linux/%.o: $(BUILD)/%.c $(LIBLUA) $(VERSION_H)
+	@mkdir -p $(dir $@)
+	$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
+
+$(BUILD)/win/%.o: $(BUILD)/%.c $(LIBLUAW) $(VERSION_H)
+	@mkdir -p $(dir $@)
+	$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+
+# Runtime link
+
+$(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
+	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+
+$(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ -o $@
+
+# lapp link
+
+$(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
+	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+
+$(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ -o $@
+
+# Runtime blob creation
+
+$(BUILD)/lrun_linux_blob.c: $(LRUN) xxd.lua
+	$(LUA) xxd.lua lrun_linux $< $@
+
+$(BUILD)/lrun_windows_blob.c: $(LRUNW) xxd.lua
+	$(LUA) xxd.lua lrun_windows $< $@
+
+# Dependencies
+
+-include $(BUILD)/linux/*.d
+-include $(BUILD)/win/*.d
