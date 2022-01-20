@@ -28,7 +28,7 @@ LUA_ARCHIVE = $(BUILD)/lua-$(LUA_VERSION).tar.gz
 LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
 LZ4_INC = external/lz4/lib
 
-CC_OPT = -Os -flto -s
+CC_OPT = -O3 -flto -s
 CC_OPT += -std=gnu99
 CC_OPT += -ffunction-sections -fdata-sections -Wl,-gc-sections
 CC_OPT += -Wall -Wextra -pedantic -Werror
@@ -38,7 +38,7 @@ CC_OPT += -Wmissing-prototypes
 CC_OPT += -Wmissing-declarations
 CC_OPT += -Werror=switch-enum
 
-LUA_CC_OPT = -Os -ffunction-sections -fdata-sections
+LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
 
 CC = gcc
@@ -60,7 +60,7 @@ MINGW_CC_INC = -I$(BUILD)
 MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
 MINGW_CC_INC += -I$(BUILD)/win
 MINGW_CC_INC += -I$(LZ4_INC)
-MINGW_CC_LIB = -lm
+MINGW_CC_LIB = -lm -ldl
 
 .PHONY: all test linux windows
 
@@ -83,11 +83,11 @@ install: $(LAPP) $(LAPPW)
 	install -T $(LAPPW) $(INSTALL_PATH)/$(notdir $(LAPPW))
 
 test: $(BUILD)/test/ok.host_linux_target_linux
-test: $(BUILD)/test/ok.host_linux_target_windows.exe
-test: $(BUILD)/test/ok.host_windows_target_linux
-test: $(BUILD)/test/ok.host_windows_target_windows.exe
+test: $(BUILD)/test/ok.host_linux_target_win.exe
+test: $(BUILD)/test/ok.host_win_target_linux
+test: $(BUILD)/test/ok.host_win_target_win.exe
 test: $(BUILD)/test/same.linux_native_and_cross
-test: $(BUILD)/test/same.windows.exe_native_and_cross
+test: $(BUILD)/test/same.win.exe_native_and_cross
 
 TEST_SOURCES = test/main.lua test/lib.lua
 
@@ -101,7 +101,7 @@ $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
 	@mkdir -p $(dir $@)
 	$(LAPP) $(TEST_SOURCES) -o $@
 
-$(BUILD)/test/bin.host_windows_target_%: $(LAPPW) $(TEST_SOURCES)
+$(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
 	@mkdir -p $(dir $@)
 	wine $(LAPPW) $(TEST_SOURCES) -o $@
 	chmod +x $@
@@ -111,12 +111,12 @@ $(BUILD)/test/bin.host_windows_target_%: $(LAPPW) $(TEST_SOURCES)
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
 	$^ Lua is great > $@
 
-$(BUILD)/test/res.host_%_target_windows.exe: $(BUILD)/test/bin.host_%_target_windows.exe
+$(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe
 	wine $^ Lua is great | dos2unix > $@
 
 # Native and cross compilations shall produce the same executable
 
-$(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(BUILD)/test/bin.host_windows_target_%
+$(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(BUILD)/test/bin.host_win_target_%
 	diff $^
 	touch $@
 
@@ -170,10 +170,10 @@ LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES))
 LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES))
 
 LAPP_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LAPP_SOURCES))
-LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o $(BUILD)/linux/lrun_windows_blob.o
+LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o $(BUILD)/linux/lrun_win_blob.o
 
 LAPPW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LAPP_SOURCES))
-LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o $(BUILD)/win/lrun_windows_blob.o
+LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o $(BUILD)/win/lrun_win_blob.o
 
 LZ4_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LZ4_SRC))
 LZ4W_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LZ4_SRC))
@@ -219,8 +219,8 @@ $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 $(BUILD)/lrun_linux_blob.c: $(LRUN) xxd.lua
 	$(LUA) xxd.lua lrun_linux $< $@
 
-$(BUILD)/lrun_windows_blob.c: $(LRUNW) xxd.lua
-	$(LUA) xxd.lua lrun_windows $< $@
+$(BUILD)/lrun_win_blob.c: $(LRUNW) xxd.lua
+	$(LUA) xxd.lua lrun_win $< $@
 
 # Dependencies
 

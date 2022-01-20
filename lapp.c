@@ -45,8 +45,8 @@ static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <ex
 
 extern const unsigned char lrun_linux[];
 extern const unsigned int lrun_linux_size;
-extern const unsigned char lrun_windows[];
-extern const unsigned int lrun_windows_size;
+extern const unsigned char lrun_win[];
+extern const unsigned int lrun_win_size;
 
 typedef struct
 {
@@ -99,7 +99,7 @@ static void buffer_cat(t_buffer *buf, const char *s)
     if (required >= buf->allocated)
     {
         buf->allocated = 2*required;
-        buf->data = safe_realloc(buf->data, buf->allocated * sizeof(char));
+        buf->data = safe_realloc(buf->data, buf->allocated);
     }
     strcpy(&buf->data[buf->size], s);
     buf->size += n;
@@ -243,8 +243,8 @@ int main(int argc, const char *argv[])
 
         if (strncasecmp(ext(output), ".exe", 4) == 0)
         {
-            lrun = lrun_windows;
-            lrun_size = lrun_windows_size;
+            lrun = lrun_win;
+            lrun_size = lrun_win_size;
             target = "Windows";
         }
         else
