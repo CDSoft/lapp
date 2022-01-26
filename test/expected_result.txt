@@ -7,3 +7,6 @@ stack traceback:
 	(...tail calls...)
 	[C]: in function 'require'
 	?: in main chunk
+Test of the acme module (C & Lua)
+3, 2, 1, boom!
+Three, Two, One, Boom!

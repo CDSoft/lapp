@@ -30,6 +30,13 @@
 
 #include "lz4.h"
 
+#include "acme.h"
+
+static const luaL_Reg lrun_libs[] = {
+    {"acme", luaopen_acme},
+    {NULL, NULL},
+};
+
 static void createargtable(lua_State *L, const char **argv, int argc)
 {
     int i, narg;
@@ -44,6 +51,7 @@ static void createargtable(lua_State *L, const char **argv, int argc)
 
 int main(int argc, const char *argv[])
 {
+    /* Lua payload extraction */
     FILE *f = fopen(argv[0], "rb");
     if (f == NULL) error(argv[0], "can not be open");
 
@@ -75,6 +83,15 @@ int main(int argc, const char *argv[])
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
     createargtable(L, argv, argc);
+
+    /* standard libraries */
+    for (const luaL_Reg *lib = lrun_libs; lib->func != NULL; lib++)
+    {
+        luaL_requiref(L, lib->name, lib->func, 0);
+        lua_pop(L, 1);
+    }
+
+    /* Lua payload execution */
     if (luaL_loadbuffer(L, chunk, header.uncompressed_size, NULL) != LUA_OK) error(argv[0], lua_tostring(L, -1));
     free(chunk);
     if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK) error(argv[0], lua_tostring(L, -1));

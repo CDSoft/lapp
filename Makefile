@@ -28,6 +28,13 @@ LUA_ARCHIVE = $(BUILD)/lua-$(LUA_VERSION).tar.gz
 LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
 LZ4_INC = external/lz4/lib
 
+# Acme demonstration module
+STDLIBS_INC += lib/acme
+STDLIBS_SOURCES += lib/acme/acme.c
+STDLIBS_LUA += lib/acme/acmelua.lua
+
+STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
+
 CC_OPT = -O3 -flto -s
 CC_OPT += -std=gnu99
 CC_OPT += -ffunction-sections -fdata-sections -Wl,-gc-sections
@@ -43,23 +50,26 @@ LUA_LD_OPT = -flto -s -Wl,-gc-sections
 
 CC = gcc
 LUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/lua
+LUAC = $(BUILD)/linux/lua-$(LUA_VERSION)/src/luac
 LIBLUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/liblua.a
 LRUN = $(BUILD)/linux/lrun
 LAPP = $(BUILD)/linux/lapp
-CC_INC = -I$(BUILD)
+CC_INC = -I. -I$(BUILD)
 CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
 CC_INC += -I$(BUILD)/linux
 CC_INC += -I$(LZ4_INC)
+CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
 CC_LIB = -lm -ldl
 
 MINGW_CC = x86_64-w64-mingw32-gcc
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
 LRUNW = $(BUILD)/win/lrun.exe
 LAPPW = $(BUILD)/win/lapp.exe
-MINGW_CC_INC = -I$(BUILD)
+MINGW_CC_INC = -I. -I$(BUILD)
 MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
 MINGW_CC_INC += -I$(BUILD)/win
 MINGW_CC_INC += -I$(LZ4_INC)
+MINGW_CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
 MINGW_CC_LIB = -lm -ldl
 
 .PHONY: all test linux windows
@@ -138,7 +148,7 @@ $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
 
 # Lua library
 
-$(LUA) $(LIBLUA) &: $(LUA_ARCHIVE)
+$(LUA) $(LUAC) $(LIBLUA) &: $(LUA_ARCHIVE)
 	@mkdir -p $(BUILD)/linux
 	tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/linux
 	sed -i "s/^CC=.*/CC=$(CC) -std=gnu99/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
@@ -163,8 +173,10 @@ $(LUA_ARCHIVE):
 # lapp compilation
 
 VERSION_H = $(BUILD)/lapp_version.h
-LRUN_SOURCES = lrun.c tools.c
 LAPP_SOURCES = lapp.c tools.c
+LAPP_SOURCES += $(STDLIBS_SOURCES) $(STDLIBS_CHUNKS)
+LRUN_SOURCES = lrun.c tools.c
+LRUN_SOURCES += $(STDLIBS_SOURCES) $(STDLIBS_CHUNKS)
 
 LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES))
 LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES))
@@ -221,6 +233,15 @@ $(BUILD)/lrun_linux_blob.c: $(LRUN) xxd.lua
 
 $(BUILD)/lrun_win_blob.c: $(LRUNW) xxd.lua
 	$(LUA) xxd.lua lrun_win $< $@
+
+# Standard runtime chunks
+
+$(BUILD)/%_chunk.c: $(BUILD)/%.luao xxd.lua
+	$(LUA) xxd.lua $(notdir $(basename $<))_chunk $< $@
+
+$(BUILD)/%.luao: %.lua
+	@mkdir -p $(dir $@)
+	$(LUAC) -o $@ $<
 
 # Dependencies
 

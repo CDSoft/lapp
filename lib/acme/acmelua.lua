@@ -18,16 +18,6 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
--- arg is built by the runtime
-print("arg = {"..table.concat(arg, ", ").."}")
-
--- embeded modules can be loaded with require
-local lib = require "lib"
-lib.hello "World"
-
--- ACME demonstration module
-print "Test of the acme module (C & Lua)"
-local acme = require "acme"
-acme.launch()
-local acmelua = require "acmelua"
-acmelua.launch()
+return {
+    launch = function() print "Three, Two, One, Boom!" end,
+}

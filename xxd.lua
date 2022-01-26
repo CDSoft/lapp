@@ -22,19 +22,23 @@ local name = arg[1]
 local input = arg[2]
 local output = arg[3]
 
-local bytes = {"const unsigned char ", name, "[] = {"}
+local blob = {}
+
+local function emit(...)
+    for i = 1, select("#", ...) do
+        table.insert(blob, (select(i, ...)))
+    end
+end
+
+emit("const unsigned char ", name, "[] = {")
 local n = 0
 local _ = io.open(input, "rb"):read("a"):gsub(".", function(c)
-    if n % 16 == 0 then table.insert(bytes, "\n") end
+    if n % 16 == 0 then emit("\n") end
     n = n + 1
-    table.insert(bytes, (" 0x%02X,"):format(c:byte()))
+    emit((" 0x%02X,"):format(c:byte()))
 end)
-if n % 16 ~= 1 then table.insert(bytes, "\n") end
-table.insert(bytes, "};\n")
-table.insert(bytes, "const unsigned int ")
-table.insert(bytes, name.."_size")
-table.insert(bytes, " = ")
-table.insert(bytes, n)
-table.insert(bytes, ";\n")
+emit(" };\n")
 
-io.open(output, "wb"):write(table.concat(bytes))
+emit("const unsigned int ", name.."_size", " = sizeof(", name, ");\n")
+
+io.open(output, "wb"):write(table.concat(blob))

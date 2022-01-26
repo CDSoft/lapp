@@ -36,12 +36,18 @@
 #include "lz4.h"
 #include "lz4hc.h"
 
+#include "acme.h"
 #define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
                   "Copyright (C) 2021-2022 Christophe Delord (cdelord.fr/lapp)\n"   \
                   "Based on "LUA_COPYRIGHT"\n"                                      \
                 )
 
 static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <executable name>";
+
+static const lapp_Lib lapp_libs[] = {
+    acme_libs,
+    NULL,
+};
 
 extern const unsigned char lrun_linux[];
 extern const unsigned int lrun_linux_size;
@@ -187,7 +193,39 @@ int main(int argc, const char *argv[])
     t_buffer b;
     buffer_init(&b);
 
+    t_buffer autoload;
+    buffer_init(&autoload);
+
     buffer_cat(&b, "local libs = {\n");
+    /* insert standard library scripts first */
+    for (const lapp_Lib *lapp_lib = lapp_libs; *lapp_lib != NULL; lapp_lib++)
+    {
+        const struct lrun_Reg *libs = (*lapp_lib)();
+        for (int j = 0; libs[j].chunk != NULL; j++)
+        {
+            const struct lrun_Reg *lib = &libs[j];
+            printf("%s:\n", lib->name);
+            buffer_cat(&b, lib->name);
+            buffer_cat(&b, " = \"");
+            for (unsigned int k = 0; k < *lib->size; k++)
+            {
+                char c[5];
+                sprintf(c, "\\x%02X", lib->chunk[k]);
+                buffer_cat(&b, c);
+            }
+            buffer_cat(&b, "\",\n");
+            printf("    builtin chunk   : %6u bytes\n", *lib->size);
+            if (lib->autoload)
+            {
+                buffer_cat(&autoload, "require \"");
+                buffer_cat(&autoload, lib->name);
+                buffer_cat(&autoload, "\"\n");
+            }
+        }
+    }
+    printf("\n");
+
+    /* then scripts from the command line */
     for (int i = 1; i < argc; i++)
     {
         if (strcmp(argv[i], "-o") == 0)
@@ -228,6 +266,7 @@ int main(int argc, const char *argv[])
         "    local lib = libs[name]\n"
         "    return lib and function() return assert(load(lib, name, \"b\"))() end\n"
         "end)\n");
+    buffer_cat(&b, autoload.data);
     buffer_cat(&b, "require \""); buffer_cat(&b, main_name); buffer_cat(&b, "\"\n");
 
     if (main_name != NULL) free(main_name);
