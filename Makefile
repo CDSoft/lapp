@@ -38,6 +38,11 @@ STDLIBS_INC += lib/lapp_stdlib
 STDLIBS_SOURCES += $(wildcard lib/lapp_stdlib/*.c)
 STDLIBS_LUA += $(wildcard lib/lapp_stdlib/*.lua)
 
+# fs lib
+STDLIBS_INC += lib/fs
+STDLIBS_SOURCES += $(wildcard lib/fs/*.c)
+STDLIBS_LUA += $(wildcard lib/fs/*.lua)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s

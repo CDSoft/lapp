@@ -1,5 +1,25 @@
+/* This file is part of lapp.
+ *
+ * lapp is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * lapp is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with lapp.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * For further information about lapp you can visit
+ * http://cdelord.fr/lapp
+ */
+
 #include "tools.h"
 
+#include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -56,4 +76,42 @@ const char *ext(const char *name)
 void strip_ext(char *name)
 {
     *(char*)ext(name) = '\0';
+}
+
+int bl_pushresult(lua_State *L, int i, const char *filename)
+{
+    int en = errno;  /* calls to Lua API may change this value */
+    if (i)
+    {
+        lua_pushboolean(L, 1);
+        return 1;
+    }
+    else
+    {
+        lua_pushnil(L);
+        lua_pushfstring(L, "%s: %s", filename, strerror(en));
+        lua_pushinteger(L, en);
+        return 3;
+    }
+}
+
+int bl_pusherror(lua_State *L, const char *msg)
+{
+    lua_pushnil(L);
+    lua_pushstring(L, msg);
+    return 2;
+}
+
+int bl_pusherror1(lua_State *L, const char *msg, const char *arg1)
+{
+    lua_pushnil(L);
+    lua_pushfstring(L, msg, arg1);
+    return 2;
+}
+
+int bl_pusherror2(lua_State *L, const char *msg, const char *arg1, int arg2)
+{
+    lua_pushnil(L);
+    lua_pushfstring(L, msg, arg1, arg2);
+    return 2;
 }

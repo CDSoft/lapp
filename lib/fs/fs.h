@@ -19,33 +19,12 @@
 
 #pragma once
 
+#include <lua.h>
 #include <lauxlib.h>
-#include <lstate.h>
+#include <lualib.h>
 
-#include <stdlib.h>
-#include <stdbool.h>
+/* C module registration function */
+LUAMOD_API int luaopen_fs(lua_State *L);
 
-struct lrun_Reg
-{
-    const char *name;
-    const unsigned char *chunk;
-    const unsigned int *size;
-    bool autoload;
-};
-
-typedef const struct lrun_Reg * (*lapp_Lib)(void);
-
-void error(const char *what, const char *message);
-
-void *safe_malloc(size_t size);
-void *safe_realloc(void *ptr, size_t size);
-char *safe_strdup(const char *s);
-
-const char *last_index(const char *s, char c);
-const char *ext(const char *name);
-void strip_ext(char *name);
-
-int bl_pushresult(lua_State *L, int i, const char *filename);
-int bl_pusherror(lua_State *L, const char *msg);
-int bl_pusherror1(lua_State *L, const char *msg, const char *arg1);
-int bl_pusherror2(lua_State *L, const char *msg, const char *arg1, int arg2);
+/* Lua scripts list */
+const struct lrun_Reg *fs_libs(void);
