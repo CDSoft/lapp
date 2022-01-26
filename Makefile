@@ -33,6 +33,11 @@ STDLIBS_INC += lib/acme
 STDLIBS_SOURCES += lib/acme/acme.c
 STDLIBS_LUA += lib/acme/acmelua.lua
 
+# Basic standard functions
+STDLIBS_INC += lib/lapp_stdlib
+STDLIBS_SOURCES += $(wildcard lib/lapp_stdlib/*.c)
+STDLIBS_LUA += $(wildcard lib/lapp_stdlib/*.lua)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s

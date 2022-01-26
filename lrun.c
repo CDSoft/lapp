@@ -31,9 +31,11 @@
 #include "lz4.h"
 
 #include "acme.h"
+#include "lapp_stdlib.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"acme", luaopen_acme},
+    {"stdlib", luaopen_stdlib},
     {NULL, NULL},
 };
 

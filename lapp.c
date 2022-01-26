@@ -37,6 +37,8 @@
 #include "lz4hc.h"
 
 #include "acme.h"
+#include "lapp_stdlib.h"
+
 #define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
                   "Copyright (C) 2021-2022 Christophe Delord (cdelord.fr/lapp)\n"   \
                   "Based on "LUA_COPYRIGHT"\n"                                      \
@@ -46,6 +48,7 @@ static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <ex
 
 static const lapp_Lib lapp_libs[] = {
     acme_libs,
+    stdlib_libs,
     NULL,
 };
 
