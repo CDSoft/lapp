@@ -39,6 +39,7 @@
 #include "acme.h"
 #include "lapp_stdlib.h"
 #include "fs.h"
+#include "ps.h"
 
 #define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
                   "Copyright (C) 2021-2022 Christophe Delord (cdelord.fr/lapp)\n"   \
@@ -51,6 +52,7 @@ static const lapp_Lib lapp_libs[] = {
     acme_libs,
     stdlib_libs,
     fs_libs,
+    ps_libs,
     NULL,
 };
 

@@ -33,11 +33,13 @@
 #include "acme.h"
 #include "lapp_stdlib.h"
 #include "fs.h"
+#include "ps.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"acme", luaopen_acme},
     {"stdlib", luaopen_stdlib},
     {"fs", luaopen_fs},
+    {"ps", luaopen_ps},
     {NULL, NULL},
 };
 
