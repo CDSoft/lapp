@@ -48,6 +48,11 @@ STDLIBS_INC += lib/ps
 STDLIBS_SOURCES += $(wildcard lib/ps/*.c)
 STDLIBS_LUA += $(wildcard lib/ps/*.lua)
 
+# sys lib
+STDLIBS_INC += lib/sys
+STDLIBS_SOURCES += $(wildcard lib/sys/*.c)
+STDLIBS_LUA += $(wildcard lib/sys/*.lua)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -74,7 +79,7 @@ CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
 CC_INC += -I$(BUILD)/linux
 CC_INC += -I$(LZ4_INC)
 CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
-CC_LIB = -lm -ldl
+CC_LIB = -lm -ldl -lreadline -lrt
 
 MINGW_CC = x86_64-w64-mingw32-gcc
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
@@ -85,7 +90,7 @@ MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
 MINGW_CC_INC += -I$(BUILD)/win
 MINGW_CC_INC += -I$(LZ4_INC)
 MINGW_CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
-MINGW_CC_LIB = -lm -ldl
+MINGW_CC_LIB = -lm -lws2_32 -ladvapi32
 
 .PHONY: all test linux windows
 
@@ -231,7 +236,7 @@ $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
 	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ -o $@
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # lapp link
 
@@ -239,7 +244,7 @@ $(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
 	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ -o $@
+	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # Runtime blob creation
 
