@@ -21,9 +21,9 @@
 
 #include "tools.h"
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 
 extern const unsigned char acmelua_chunk[];
 extern const unsigned int acmelua_chunk_size;

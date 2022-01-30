@@ -44,9 +44,9 @@
 #include <sys/select.h>
 #endif
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 
 extern const unsigned char psx_chunk[];
 extern const unsigned int psx_chunk_size;

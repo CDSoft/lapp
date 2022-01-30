@@ -17,28 +17,25 @@
  * http://cdelord.fr/lapp
  */
 
-#include <errno.h>
 #include <libgen.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
 #include <sys/stat.h>
 
 #include "lauxlib.h"
-#include "lstate.h"
 #include "lundump.h"
 
 #include "header.h"
-#include "tools.h"
 #include "lapp_version.h"
+#include "tools.h"
 
-#include "lz4.h"
 #include "lz4hc.h"
 
 #include "acme.h"
-#include "lapp_stdlib.h"
 #include "fs.h"
+#include "std.h"
+#include "lz4lib.h"
 #include "ps.h"
 #include "sys.h"
 
@@ -51,10 +48,11 @@ static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <ex
 
 static const lapp_Lib lapp_libs[] = {
     acme_libs,
-    stdlib_libs,
+    std_libs,
     fs_libs,
     ps_libs,
     sys_libs,
+    lz4_libs,
     NULL,
 };
 

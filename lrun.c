@@ -21,27 +21,28 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "lua.h"
-#include "lualib.h"
-#include "lauxlib.h"
-
 #include "header.h"
 #include "tools.h"
+
+#include "lauxlib.h"
+#include "lualib.h"
 
 #include "lz4.h"
 
 #include "acme.h"
-#include "lapp_stdlib.h"
 #include "fs.h"
+#include "lz4lib.h"
 #include "ps.h"
+#include "std.h"
 #include "sys.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"acme", luaopen_acme},
-    {"stdlib", luaopen_stdlib},
+    {"std", luaopen_std},
     {"fs", luaopen_fs},
     {"ps", luaopen_ps},
     {"sys", luaopen_sys},
+    {"lz4", luaopen_lz4},
     {NULL, NULL},
 };
 

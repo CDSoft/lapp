@@ -19,7 +19,6 @@
 
 #pragma once
 
-#include <lauxlib.h>
 #include <lstate.h>
 
 #include <stdlib.h>

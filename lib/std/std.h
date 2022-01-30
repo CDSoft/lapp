@@ -19,12 +19,10 @@
 
 #pragma once
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "lua.h"
 
 /* C module registration function */
-LUAMOD_API int luaopen_stdlib(lua_State *L);
+LUAMOD_API int luaopen_std(lua_State *L);
 
 /* Lua scripts list */
-const struct lrun_Reg *stdlib_libs(void);
+const struct lrun_Reg *std_libs(void);

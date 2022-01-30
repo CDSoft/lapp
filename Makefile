@@ -34,9 +34,9 @@ STDLIBS_SOURCES += lib/acme/acme.c
 STDLIBS_LUA += lib/acme/acmelua.lua
 
 # Basic standard functions
-STDLIBS_INC += lib/lapp_stdlib
-STDLIBS_SOURCES += $(wildcard lib/lapp_stdlib/*.c)
-STDLIBS_LUA += $(wildcard lib/lapp_stdlib/*.lua)
+STDLIBS_INC += lib/std
+STDLIBS_SOURCES += $(wildcard lib/std/*.c)
+STDLIBS_LUA += $(wildcard lib/std/*.lua)
 
 # fs lib
 STDLIBS_INC += lib/fs
@@ -52,6 +52,11 @@ STDLIBS_LUA += $(wildcard lib/ps/*.lua)
 STDLIBS_INC += lib/sys
 STDLIBS_SOURCES += $(wildcard lib/sys/*.c)
 STDLIBS_LUA += $(wildcard lib/sys/*.lua)
+
+# lz4 lib
+STDLIBS_INC += lib/lz4lib
+STDLIBS_SOURCES += $(wildcard lib/lz4lib/*.c)
+STDLIBS_LUA += $(wildcard lib/lz4lib/*.lua)
 
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
@@ -196,7 +201,7 @@ VERSION_H = $(BUILD)/lapp_version.h
 LAPP_SOURCES = lapp.c tools.c
 LAPP_SOURCES += $(STDLIBS_SOURCES) $(STDLIBS_CHUNKS)
 LRUN_SOURCES = lrun.c tools.c
-LRUN_SOURCES += $(STDLIBS_SOURCES) $(STDLIBS_CHUNKS)
+LRUN_SOURCES += $(STDLIBS_SOURCES)
 
 LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES))
 LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES))
@@ -265,5 +270,4 @@ $(BUILD)/%.luao: %.lua
 
 # Dependencies
 
--include $(BUILD)/linux/*.d
--include $(BUILD)/win/*.d
+-include $(shell find $(BUILD) -name "*.d")

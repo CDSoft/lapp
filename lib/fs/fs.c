@@ -44,9 +44,9 @@
 #include <sys/select.h>
 #endif
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
 
 #define FS_PATHSIZE 1024
 #define FS_BUFSIZE  (64*1024)

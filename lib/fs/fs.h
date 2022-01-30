@@ -19,9 +19,7 @@
 
 #pragma once
 
-#include <lua.h>
-#include <lauxlib.h>
-#include <lualib.h>
+#include "lua.h"
 
 /* C module registration function */
 LUAMOD_API int luaopen_fs(lua_State *L);
