@@ -31,6 +31,7 @@
 
 #include "acme.h"
 #include "fs.h"
+#include "lpeg.h"
 #include "lz4lib.h"
 #include "ps.h"
 #include "std.h"
@@ -43,6 +44,7 @@ static const luaL_Reg lrun_libs[] = {
     {"ps", luaopen_ps},
     {"sys", luaopen_sys},
     {"lz4", luaopen_lz4},
+    {"lpeg", luaopen_lpeg},
     {NULL, NULL},
 };
 

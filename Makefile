@@ -58,6 +58,15 @@ STDLIBS_INC += lib/lz4lib
 STDLIBS_SOURCES += $(wildcard lib/lz4lib/*.c)
 STDLIBS_LUA += $(wildcard lib/lz4lib/*.lua)
 
+# lpeg
+LPEG_VERSION=1.0.2
+LPEG_URL = http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-$(LPEG_VERSION).tar.gz
+LPEG_SOURCES = $(addprefix $(BUILD)/lpeg-$(LPEG_VERSION)/,lpcap.c lpcode.c lpprint.c lptree.c lpvm.c)
+LPEG_SCRIPTS = $(addprefix $(BUILD)/lpeg-$(LPEG_VERSION)/,re.lua)
+STDLIBS_INC += lib/lpeg -I$(BUILD)/lpeg-$(LPEG_VERSION)
+STDLIBS_SOURCES += $(wildcard lib/lpeg/*.c) $(LPEG_SOURCES)
+STDLIBS_LUA += $(LPEG_SCRIPTS)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -68,7 +77,8 @@ CC_OPT += -Wstrict-prototypes
 CC_OPT += -Wmissing-field-initializers
 CC_OPT += -Wmissing-prototypes
 CC_OPT += -Wmissing-declarations
-CC_OPT += -Werror=switch-enum
+CC_OPT += -Wno-error=switch-enum
+CC_OPT += -Wno-error=implicit-fallthrough
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
@@ -106,6 +116,11 @@ all: linux
 all: windows
 all: test
 
+red = /bin/echo -e "\x1b[31m[$1]\x1b[0m $2"
+green = /bin/echo -e "\x1b[32m[$1]\x1b[0m $2"
+blue = /bin/echo -e "\x1b[34m[$1]\x1b[0m $2"
+cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
+
 linux: $(LAPP)
 
 windows: $(LAPPW)
@@ -127,33 +142,39 @@ test: $(BUILD)/test/same.win.exe_native_and_cross
 TEST_SOURCES = test/main.lua test/lib.lua
 
 $(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
-	diff $^
-	touch $@
+	@$(call cyan,"diff",$^)
+	@diff $^
+	@touch $@
 
 # Test executables
 
 $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
+	@$(call cyan,"lapp",$@)
 	@mkdir -p $(dir $@)
 	$(LAPP) $(TEST_SOURCES) -o $@
 
 $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
+	@$(call cyan,"lapp",$@)
 	@mkdir -p $(dir $@)
-	wine $(LAPPW) $(TEST_SOURCES) -o $@
-	chmod +x $@
+	@wine $(LAPPW) $(TEST_SOURCES) -o $@
+	@chmod +x $@
 
 # Test results
 
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
-	$^ Lua is great > $@
+	@$(call cyan,"test",$@)
+	@$^ Lua is great > $@
 
 $(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe
-	wine $^ Lua is great | dos2unix > $@
+	@$(call cyan,"test",$@)
+	@wine $^ Lua is great | dos2unix > $@
 
 # Native and cross compilations shall produce the same executable
 
 $(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(BUILD)/test/bin.host_win_target_%
-	diff $^
-	touch $@
+	@$(call cyan,"diff",$^)
+	@diff $^
+	@touch $@
 
 # clangd configuration file
 
@@ -166,6 +187,7 @@ compile_flags.txt: Makefile
 # current git version based on the last tag
 
 $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
+	@$(call cyan,"gen",$@)
 	@mkdir -p $(dir $@)
 	@(  echo "#pragma once";                                    \
 	    echo "#define LAPP_VERSION \"`git describe --tags`\"";  \
@@ -174,26 +196,29 @@ $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
 # Lua library
 
 $(LUA) $(LUAC) $(LIBLUA) &: $(LUA_ARCHIVE)
+	@$(call cyan,"make",$@)
 	@mkdir -p $(BUILD)/linux
-	tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/linux
-	sed -i "s/^CC=.*/CC=$(CC) -std=gnu99/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^CFLAGS= -O2 /CFLAGS= /" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^MYCFLAGS=.*/MYCFLAGS= $(LUA_CC_OPT)/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^MYLDFLAGS=.*/MYLDFLAGS= $(LUA_LD_OPT)/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
-	make -j -C $(BUILD)/linux/lua-$(LUA_VERSION) linux
+	@tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/linux
+	@sed -i "s/^CC=.*/CC=$(CC) -std=gnu99/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^CFLAGS= -O2 /CFLAGS= /" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^MYCFLAGS=.*/MYCFLAGS= $(LUA_CC_OPT)/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^MYLDFLAGS=.*/MYLDFLAGS= $(LUA_LD_OPT)/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
+	@make -j -C $(BUILD)/linux/lua-$(LUA_VERSION) linux
 
 $(LIBLUAW): $(LUA_ARCHIVE)
+	@$(call cyan,"make",$@)
 	@mkdir -p $(BUILD)/win
-	tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/win
-	sed -i "s/^CC=.*/CC=$(MINGW_CC) -std=gnu99/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^CFLAGS= -O2 /CFLAGS= /" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^MYCFLAGS=.*/MYCFLAGS= $(LUA_CC_OPT)/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
-	sed -i "s/^MYLDFLAGS=.*/MYLDFLAGS= $(LUA_LD_OPT)/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
-	make -j -C $(BUILD)/win/lua-$(LUA_VERSION) mingw
+	@tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/win
+	@sed -i "s/^CC=.*/CC=$(MINGW_CC) -std=gnu99/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^CFLAGS= -O2 /CFLAGS= /" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^MYCFLAGS=.*/MYCFLAGS= $(LUA_CC_OPT)/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
+	@sed -i "s/^MYLDFLAGS=.*/MYLDFLAGS= $(LUA_LD_OPT)/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
+	@make -j -C $(BUILD)/win/lua-$(LUA_VERSION) mingw
 
 $(LUA_ARCHIVE):
+	@$(call cyan,"wget",$@)
 	@mkdir -p $(dir $@)
-	wget -c $(LUA_URL) -O $(LUA_ARCHIVE)
+	@wget -c $(LUA_URL) -O $(LUA_ARCHIVE)
 
 # lapp compilation
 
@@ -218,55 +243,79 @@ LZ4W_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LZ4_SRC))
 # Compilation
 
 $(BUILD)/linux/%.o: %.c $(LIBLUA) $(VERSION_H)
+	@$(call cyan,"cc",$@)
 	@mkdir -p $(dir $@)
-	$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
+	@$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
 
 $(BUILD)/win/%.o: %.c $(LIBLUAW) $(VERSION_H)
+	@$(call cyan,"cc",$@)
 	@mkdir -p $(dir $@)
-	$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Compilation of the generated source files
 
 $(BUILD)/linux/%.o: $(BUILD)/%.c $(LIBLUA) $(VERSION_H)
+	@$(call cyan,"cc",$@)
 	@mkdir -p $(dir $@)
-	$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
+	@$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
 
 $(BUILD)/win/%.o: $(BUILD)/%.c $(LIBLUAW) $(VERSION_H)
+	@$(call cyan,"cc",$@)
 	@mkdir -p $(dir $@)
-	$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Runtime link
 
 $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
-	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+	@$(call cyan,"ld",$@)
+	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(call cyan,"ld",$@)
+	@$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # lapp link
 
 $(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
-	$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+	@$(call cyan,"ld",$@)
+	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(call cyan,"ld",$@)
+	@$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # Runtime blob creation
 
 $(BUILD)/lrun_linux_blob.c: $(LRUN) xxd.lua
-	$(LUA) xxd.lua lrun_linux $< $@
+	@$(call cyan,"xxd",$<)
+	@$(LUA) xxd.lua lrun_linux $< $@
 
 $(BUILD)/lrun_win_blob.c: $(LRUNW) xxd.lua
-	$(LUA) xxd.lua lrun_win $< $@
+	@$(call cyan,"xxd",$<)
+	@$(LUA) xxd.lua lrun_win $< $@
 
 # Standard runtime chunks
 
 $(BUILD)/%_chunk.c: $(BUILD)/%.luao xxd.lua
-	$(LUA) xxd.lua $(notdir $(basename $<))_chunk $< $@
+	@$(call cyan,"xxd",$<)
+	@$(LUA) xxd.lua $(notdir $(basename $<))_chunk $< $@
 
 $(BUILD)/%.luao: %.lua
+	@$(call cyan,"luac",$<)
 	@mkdir -p $(dir $@)
-	$(LUAC) -o $@ $<
+	@$(LUAC) -o $@ $<
+
+# lpeg
+
+$(LPEG_SOURCES) $(LPEG_SCRIPTS) &: $(BUILD)/$(notdir $(LPEG_URL))
+	@$(call cyan,"tar",$@)
+	@tar -xzf $< -C $(BUILD)
+	@touch $(LPEG_SOURCES) $(LPEG_SCRIPTS)
+
+$(BUILD)/$(notdir $(LPEG_URL)):
+	@$(call cyan,"wget",$@)
+	@mkdir -p $(dir $@)
+	@wget -c $(LPEG_URL) -O $@
 
 # Dependencies
 

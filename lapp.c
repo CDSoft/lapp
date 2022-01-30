@@ -34,9 +34,10 @@
 
 #include "acme.h"
 #include "fs.h"
-#include "std.h"
+#include "lpeg.h"
 #include "lz4lib.h"
 #include "ps.h"
+#include "std.h"
 #include "sys.h"
 
 #define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
@@ -53,6 +54,7 @@ static const lapp_Lib lapp_libs[] = {
     ps_libs,
     sys_libs,
     lz4_libs,
+    lpeg_libs,
     NULL,
 };
 
