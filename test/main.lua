@@ -86,3 +86,55 @@ if require "sys".platform == "Linux" then
 end
 assert(require "mime")
 assert(require "mime.core")
+
+-- crypt
+local crypt = require "crypt"
+do
+    local x = "foo"
+    local y = crypt.hex.encode(x)
+    assert(y == "666f6f")
+    assert(crypt.hex.decode(y) == x)
+end
+do
+    local x = "foo"
+    local y = crypt.base64.encode(x)
+    assert(y == "Zm9v")
+    assert(crypt.base64.decode(y) == x)
+end
+do
+    local x = "foo123456789\n"
+    local y = crypt.crc32(x)
+    assert(y == 0x3b13cda7)
+end
+do
+    local x = "foobar!"
+    local aes1 = crypt.AES("password", 128)
+    local aes2 = crypt.AES("password", 128)
+    local y1 = aes1.encrypt(x)
+    local y2 = aes2.encrypt(x)
+    local z1 = aes1.decrypt(y1)
+    local z2 = aes2.decrypt(y2)
+    assert(y1 ~= x)
+    assert(y2 ~= x)
+    assert(y1 ~= y2)
+    assert(z1 == x)
+    assert(z2 == x)
+end
+do
+    local x = "foobar!"
+    local btea_1 = crypt.BTEA("password")
+    local btea_2 = crypt.BTEA("password")
+    local y = btea_1.encrypt(x)
+    local z = btea_2.decrypt(y)
+    assert(y ~= x)
+    assert(z:sub(1, #x) == x)
+end
+do
+    local x = "foobar!"
+    local rc4_1 = crypt.RC4("password", 4)
+    local rc4_2 = crypt.RC4("password", 4)
+    local y = rc4_1(x)
+    local z = rc4_2(y)
+    assert(y ~= x)
+    assert(z == x)
+end

@@ -33,6 +33,7 @@
 #include "lz4hc.h"
 
 #include "acme.h"
+#include "crypt.h"
 #include "fs.h"
 #include "lpeg.h"
 #include "luasocketlib.h"
@@ -57,6 +58,7 @@ static const lapp_Lib lapp_libs[] = {
     lz4_libs,
     lpeg_libs,
     luasocket_libs,
+    crypt_libs,
     NULL,
 };
 

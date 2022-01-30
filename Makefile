@@ -58,6 +58,11 @@ STDLIBS_INC += lib/lz4lib
 STDLIBS_SOURCES += $(wildcard lib/lz4lib/*.c)
 STDLIBS_LUA += $(wildcard lib/lz4lib/*.lua)
 
+# crypt lib
+STDLIBS_INC += lib/crypt
+STDLIBS_SOURCES += $(wildcard lib/crypt/*.c)
+STDLIBS_LUA += $(wildcard lib/crypt/*.lua)
+
 # lpeg
 LPEG_VERSION=1.0.2
 LPEG_URL = http://www.inf.puc-rio.br/~roberto/lpeg/lpeg-$(LPEG_VERSION).tar.gz
