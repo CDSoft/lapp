@@ -31,3 +31,42 @@ local acme = require "acme"
 acme.launch()
 local acmelua = require "acmelua"
 acmelua.launch()
+
+-- fun
+local fun = require "fun"
+do
+    local k = fun.const(42, 43)
+    local x, y = k(1000)
+    assert(x == 42 and y == 43)
+    x, y = fun.id(44, 45)
+    assert(x == 44 and y == 45)
+end
+print("squares", table.concat(fun.map(function(x) return x*x end, fun.range(10)), ", "))
+print("split", table.concat(("ab/cd/ef/"):split "/", ", "))
+print("words", table.concat(("ab cd ef"):words(), ", "))
+
+-- fs
+assert(require "fs")
+
+-- ps
+assert(require "ps")
+
+-- sys
+assert(require "sys")
+
+-- lz4
+local lz4 = require "lz4"
+do
+    local x = "Lua is great\n"
+    for i = 1, 10 do x = x..x end
+    local y = lz4.compress(x)
+    local z = lz4.compress_hc(x)
+    assert(#y < #x)
+    assert(#z < #x)
+    assert(lz4.decompress(y) == x)
+    assert(lz4.decompress(z) == x)
+end
+
+-- lpeg
+assert(require "lpeg")
+assert(require "re")

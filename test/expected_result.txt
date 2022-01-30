@@ -10,3 +10,6 @@ stack traceback:
 Test of the acme module (C & Lua)
 3, 2, 1, boom!
 Three, Two, One, Boom!
+squares	1, 4, 9, 16, 25, 36, 49, 64, 81, 100
+split	ab, cd, ef, 
+words	ab, cd, ef
