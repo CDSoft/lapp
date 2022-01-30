@@ -21,6 +21,16 @@
 
 #include "tools.h"
 
+#ifdef __MINGW32__
+#include <io.h>
+#include <ws2tcpip.h>
+#include <windows.h>
+#include <wincrypt.h>
+#else
+#include <glob.h>
+#include <sys/select.h>
+#endif
+
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
@@ -33,16 +43,6 @@
 #include <unistd.h>
 #include <unistd.h>
 #include <utime.h>
-
-#ifdef __MINGW32__
-#include <io.h>
-#include <ws2tcpip.h>
-#include <windows.h>
-#include <wincrypt.h>
-#else
-#include <glob.h>
-#include <sys/select.h>
-#endif
 
 #include "lua.h"
 #include "lauxlib.h"

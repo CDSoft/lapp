@@ -67,6 +67,12 @@ STDLIBS_INC += lib/lpeg -I$(BUILD)/lpeg-$(LPEG_VERSION)
 STDLIBS_SOURCES += $(wildcard lib/lpeg/*.c) $(LPEG_SOURCES)
 STDLIBS_LUA += $(LPEG_SCRIPTS)
 
+# luasocket
+STDLIBS_INC += lib/luasocket
+STDLIBS_SOURCES += $(wildcard lib/luasocket/*.c) $(wildcard external/luasocket/src/*.c)
+STDLIBS_LUA += $(wildcard lib/luasocket/*.lua)
+STDLIBS_LUA += $(wildcard external/luasocket/src/*.lua)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -77,8 +83,18 @@ CC_OPT += -Wstrict-prototypes
 CC_OPT += -Wmissing-field-initializers
 CC_OPT += -Wmissing-prototypes
 CC_OPT += -Wmissing-declarations
-CC_OPT += -Wno-error=switch-enum
-CC_OPT += -Wno-error=implicit-fallthrough
+CC_OPT += -Werror=switch-enum
+CC_OPT += -Werror=implicit-fallthrough
+CC_OPT += -Werror=missing-prototypes
+
+$(BUILD)/linux/.build/lpeg-1.0.2/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-1.0.2/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/linux/.build/lpeg-1.0.2/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-1.0.2/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/linux/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/linux/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/win/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/win/external/luasocket/src/options.o: CC_OPT += -Wno-error=implicit-function-declaration
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
@@ -223,18 +239,24 @@ $(LUA_ARCHIVE):
 # lapp compilation
 
 VERSION_H = $(BUILD)/lapp_version.h
+
 LAPP_SOURCES = lapp.c tools.c
 LAPP_SOURCES += $(STDLIBS_SOURCES) $(STDLIBS_CHUNKS)
+LAPP_SOURCES_LINUX = $(filter-out %/wsocket.c,$(LAPP_SOURCES))
+LAPP_SOURCES_WIN = $(filter-out %/usocket.c %/serial.c %/unixdgram.c %/unixstream.c %/unix.c,$(LAPP_SOURCES))
+
 LRUN_SOURCES = lrun.c tools.c
 LRUN_SOURCES += $(STDLIBS_SOURCES)
+LRUN_SOURCES_LINUX = $(filter-out %/wsocket.c,$(LRUN_SOURCES))
+LRUN_SOURCES_WIN = $(filter-out %/usocket.c %/serial.c %/unixdgram.c %/unixstream.c %/unix.c,$(LRUN_SOURCES))
 
-LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES))
-LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES))
+LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES_LINUX))
+LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES_WIN))
 
-LAPP_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LAPP_SOURCES))
+LAPP_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LAPP_SOURCES_LINUX))
 LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o $(BUILD)/linux/lrun_win_blob.o
 
-LAPPW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LAPP_SOURCES))
+LAPPW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LAPP_SOURCES_WIN))
 LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o $(BUILD)/win/lrun_win_blob.o
 
 LZ4_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LZ4_SRC))
@@ -272,7 +294,7 @@ $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 	@$(call cyan,"ld",$@)
-	@$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(MINGW_CC) $(CC_OPT) -Wno-error=attributes $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # lapp link
 

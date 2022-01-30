@@ -70,3 +70,19 @@ end
 -- lpeg
 assert(require "lpeg")
 assert(require "re")
+
+-- luasocket
+assert(require "socket")
+assert(require "socket.core")
+assert(require "socket.ftp")
+assert(require "socket.headers")
+assert(require "socket.http")
+assert(require "socket.smtp")
+assert(require "socket.tp")
+assert(require "socket.url")
+if require "sys".platform == "Linux" then
+    assert(require "socket.unix")
+    assert(require "socket.serial")
+end
+assert(require "mime")
+assert(require "mime.core")
