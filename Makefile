@@ -163,19 +163,19 @@ test: $(BUILD)/test/same.win.exe_native_and_cross
 TEST_SOURCES = test/main.lua test/lib.lua
 
 $(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
-	@$(call cyan,"diff",$^)
+	@$(call cyan,"DIFF",$^)
 	@diff $^
 	@touch $@
 
 # Test executables
 
 $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
-	@$(call cyan,"lapp",$@)
+	@$(call cyan,"LAPP",$@)
 	@mkdir -p $(dir $@)
 	$(LAPP) $(TEST_SOURCES) -o $@
 
 $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
-	@$(call cyan,"lapp",$@)
+	@$(call cyan,"LAPP",$@)
 	@mkdir -p $(dir $@)
 	@wine $(LAPPW) $(TEST_SOURCES) -o $@
 	@chmod +x $@
@@ -183,17 +183,17 @@ $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
 # Test results
 
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
-	@$(call cyan,"test",$@)
+	@$(call cyan,"TEST",$@)
 	@$^ Lua is great > $@
 
 $(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe
-	@$(call cyan,"test",$@)
+	@$(call cyan,"TEST",$@)
 	@wine $^ Lua is great | dos2unix > $@
 
 # Native and cross compilations shall produce the same executable
 
 $(BUILD)/test/same.%_native_and_cross: $(BUILD)/test/bin.host_linux_target_% $(BUILD)/test/bin.host_win_target_%
-	@$(call cyan,"diff",$^)
+	@$(call cyan,"DIFF",$^)
 	@diff $^
 	@touch $@
 
@@ -208,7 +208,7 @@ compile_flags.txt: Makefile
 # current git version based on the last tag
 
 $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
-	@$(call cyan,"gen",$@)
+	@$(call cyan,"GEN",$@)
 	@mkdir -p $(dir $@)
 	@(  echo "#pragma once";                                    \
 	    echo "#define LAPP_VERSION \"`git describe --tags`\"";  \
@@ -217,7 +217,7 @@ $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
 # Lua library
 
 $(LUA) $(LUAC) $(LIBLUA) &: $(LUA_ARCHIVE)
-	@$(call cyan,"make",$@)
+	@$(call cyan,"MAKE",$@)
 	@mkdir -p $(BUILD)/linux
 	@tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/linux
 	@sed -i "s/^CC=.*/CC=$(CC) -std=gnu99/" $(BUILD)/linux/lua-$(LUA_VERSION)/src/Makefile
@@ -227,7 +227,7 @@ $(LUA) $(LUAC) $(LIBLUA) &: $(LUA_ARCHIVE)
 	@make -j -C $(BUILD)/linux/lua-$(LUA_VERSION) linux
 
 $(LIBLUAW): $(LUA_ARCHIVE)
-	@$(call cyan,"make",$@)
+	@$(call cyan,"MAKE",$@)
 	@mkdir -p $(BUILD)/win
 	@tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/win
 	@sed -i "s/^CC=.*/CC=$(MINGW_CC) -std=gnu99/" $(BUILD)/win/lua-$(LUA_VERSION)/src/Makefile
@@ -237,7 +237,7 @@ $(LIBLUAW): $(LUA_ARCHIVE)
 	@make -j -C $(BUILD)/win/lua-$(LUA_VERSION) mingw
 
 $(LUA_ARCHIVE):
-	@$(call cyan,"wget",$@)
+	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(LUA_URL) -O $(LUA_ARCHIVE)
 
@@ -270,77 +270,77 @@ LZ4W_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LZ4_SRC))
 # Compilation
 
 $(BUILD)/linux/%.o: %.c $(LIBLUA) $(VERSION_H)
-	@$(call cyan,"cc",$@)
+	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
 	@$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
 
 $(BUILD)/win/%.o: %.c $(LIBLUAW) $(VERSION_H)
-	@$(call cyan,"cc",$@)
+	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
 	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Compilation of the generated source files
 
 $(BUILD)/linux/%.o: $(BUILD)/%.c $(LIBLUA) $(VERSION_H)
-	@$(call cyan,"cc",$@)
+	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
 	@$(CC) -MD $(CC_OPT) $(CC_INC) -c $< -o $@
 
 $(BUILD)/win/%.o: $(BUILD)/%.c $(LIBLUAW) $(VERSION_H)
-	@$(call cyan,"cc",$@)
+	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
 	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Runtime link
 
 $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
-	@$(call cyan,"ld",$@)
+	@$(call cyan,"LD",$@)
 	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	@$(call cyan,"ld",$@)
+	@$(call cyan,"LD",$@)
 	@$(MINGW_CC) $(CC_OPT) -Wno-error=attributes $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # lapp link
 
 $(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
-	@$(call cyan,"ld",$@)
+	@$(call cyan,"LD",$@)
 	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
 
 $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
-	@$(call cyan,"ld",$@)
+	@$(call cyan,"LD",$@)
 	@$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # Runtime blob creation
 
 $(BUILD)/lrun_linux_blob.c: $(LRUN) xxd.lua
-	@$(call cyan,"xxd",$<)
+	@$(call cyan,"XXD",$<)
 	@$(LUA) xxd.lua lrun_linux $< $@
 
 $(BUILD)/lrun_win_blob.c: $(LRUNW) xxd.lua
-	@$(call cyan,"xxd",$<)
+	@$(call cyan,"XXD",$<)
 	@$(LUA) xxd.lua lrun_win $< $@
 
 # Standard runtime chunks
 
 $(BUILD)/%_chunk.c: $(BUILD)/%.luao xxd.lua
-	@$(call cyan,"xxd",$<)
+	@$(call cyan,"XXD",$<)
 	@$(LUA) xxd.lua $(notdir $(basename $<))_chunk $< $@
 
 $(BUILD)/%.luao: %.lua
-	@$(call cyan,"luac",$<)
+	@$(call cyan,"LUAC",$<)
 	@mkdir -p $(dir $@)
 	@$(LUAC) -o $@ $<
 
 # lpeg
 
 $(LPEG_SOURCES) $(LPEG_SCRIPTS) &: $(BUILD)/$(notdir $(LPEG_URL))
-	@$(call cyan,"tar",$@)
+	@$(call cyan,"TAR",$@)
 	@tar -xzf $< -C $(BUILD)
 	@touch $(LPEG_SOURCES) $(LPEG_SCRIPTS)
 
 $(BUILD)/$(notdir $(LPEG_URL)):
-	@$(call cyan,"wget",$@)
+	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(LPEG_URL) -O $@
 

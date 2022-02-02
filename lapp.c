@@ -211,13 +211,14 @@ int main(int argc, const char *argv[])
 
     buffer_cat(&b, "local libs = {\n");
     /* insert standard library scripts first */
+    size_t runtime_script_size = 0;
+    printf("Runtime:\n");
     for (const lapp_Lib *lapp_lib = lapp_libs; *lapp_lib != NULL; lapp_lib++)
     {
         const struct lrun_Reg *libs = (*lapp_lib)();
         for (int j = 0; libs[j].chunk != NULL; j++)
         {
             const struct lrun_Reg *lib = &libs[j];
-            printf("%s:\n", lib->name);
             buffer_cat(&b, lib->name);
             buffer_cat(&b, " = \"");
             for (unsigned int k = 0; k < *lib->size; k++)
@@ -227,7 +228,7 @@ int main(int argc, const char *argv[])
                 buffer_cat(&b, c);
             }
             buffer_cat(&b, "\",\n");
-            printf("    builtin chunk   : %6u bytes\n", *lib->size);
+            runtime_script_size += *lib->size;
             if (lib->autoload)
             {
                 buffer_cat(&autoload, "require \"");
@@ -236,6 +237,7 @@ int main(int argc, const char *argv[])
             }
         }
     }
+    printf("    builtin chunk   : %6zu bytes\n", runtime_script_size);
     printf("\n");
 
     /* then scripts from the command line */
