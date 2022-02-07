@@ -53,6 +53,8 @@ extern const unsigned char tp_chunk[];
 extern const unsigned int tp_chunk_size;
 extern const unsigned char url_chunk[];
 extern const unsigned int url_chunk_size;
+extern const unsigned char ftpx_chunk[];
+extern const unsigned int ftpx_chunk_size;
 
 static const struct lrun_Reg luasocket_scripts[] = {
     {"socket", socket_chunk, &socket_chunk_size, false},
@@ -65,6 +67,7 @@ static const struct lrun_Reg luasocket_scripts[] = {
     {"ltn12", ltn12_chunk, &ltn12_chunk_size, false},
     {"mbox", mbox_chunk, &mbox_chunk_size, false},
     {"mime", mime_chunk, &mime_chunk_size, false},
+    {"ftp", ftpx_chunk, &ftpx_chunk_size, false},
     {NULL, NULL, NULL, false},
 };
 

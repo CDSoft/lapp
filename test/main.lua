@@ -86,6 +86,7 @@ if require "sys".platform == "Linux" then
 end
 assert(require "mime")
 assert(require "mime.core")
+assert(type(require "ftp") == "function")
 
 -- crypt
 local crypt = require "crypt"
