@@ -92,10 +92,10 @@ CC_OPT += -Werror=switch-enum
 CC_OPT += -Werror=implicit-fallthrough
 CC_OPT += -Werror=missing-prototypes
 
-$(BUILD)/linux/.build/lpeg-1.0.2/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-1.0.2/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/linux/.build/lpeg-1.0.2/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-1.0.2/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/linux/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/linux/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/win/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
