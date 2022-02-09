@@ -16,7 +16,7 @@
 # For further information about lapp you can visit
 # http://cdelord.fr/lapp
 
-LUA_VERSION = 5.4.3
+LUA_VERSION = 5.4.4
 LUA_URL = http://www.lua.org/ftp/lua-$(LUA_VERSION).tar.gz
 
 INSTALL_PATH = $(HOME)/.local/bin

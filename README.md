@@ -1,6 +1,6 @@
 # Lua Application packager
 
-`lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.3) and
+`lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.4) and
 produces a standalone executable for Linux and Windows.
 
 `lapp` runs on Linux and `lapp.exe` on Windows.
@@ -354,7 +354,7 @@ Methods are:
 
 `lapp` uses other third party softwares:
 
-* **[Lua 5.4](http://www.lua.org)**: Copyright (C) 1994-2021 Lua.org, PUC-Rio
+* **[Lua 5.4](http://www.lua.org)**: Copyright (C) 1994-2022 Lua.org, PUC-Rio
   ([MIT license](http://www.lua.org/license.html))
 * **[Lpeg](http://www.inf.puc-rio.br/~roberto/lpeg/)**: Parsing Expression Grammars For Lua
   ([MIT license](http://www.lua.org/license.html))
