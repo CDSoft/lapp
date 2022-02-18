@@ -92,14 +92,17 @@ CC_OPT += -Werror=switch-enum
 CC_OPT += -Werror=implicit-fallthrough
 CC_OPT += -Werror=missing-prototypes
 
+MINGW_OPT = $(CC_OPT)
+MINGW_OPT += -Wno-error=attributes
+
 $(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpcode.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpvm.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/linux/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/linux/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
-$(BUILD)/win/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
-$(BUILD)/win/external/luasocket/src/options.o: CC_OPT += -Wno-error=implicit-function-declaration
+$(BUILD)/win/external/luasocket/src/serial.o: MINGW_OPT += -Wno-error=missing-prototypes
+$(BUILD)/win/external/luasocket/src/options.o: MINGW_OPT += -Wno-error=implicit-function-declaration
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
@@ -277,7 +280,7 @@ $(BUILD)/linux/%.o: %.c $(LIBLUA) $(VERSION_H)
 $(BUILD)/win/%.o: %.c $(LIBLUAW) $(VERSION_H)
 	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
-	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+	@$(MINGW_CC) -MD $(MINGW_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Compilation of the generated source files
 
@@ -289,7 +292,7 @@ $(BUILD)/linux/%.o: $(BUILD)/%.c $(LIBLUA) $(VERSION_H)
 $(BUILD)/win/%.o: $(BUILD)/%.c $(LIBLUAW) $(VERSION_H)
 	@$(call cyan,"CC",$@)
 	@mkdir -p $(dir $@)
-	@$(MINGW_CC) -MD $(CC_OPT) $(MINGW_CC_INC) -c $< -o $@
+	@$(MINGW_CC) -MD $(MINGW_OPT) $(MINGW_CC_INC) -c $< -o $@
 
 # Runtime link
 
@@ -299,7 +302,7 @@ $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 	@$(call cyan,"LD",$@)
-	@$(MINGW_CC) $(CC_OPT) -Wno-error=attributes $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(MINGW_CC) $(MINGW_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # lapp link
 
@@ -309,7 +312,7 @@ $(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
 
 $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 	@$(call cyan,"LD",$@)
-	@$(MINGW_CC) $(CC_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(MINGW_CC) $(MINGW_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
 
 # Runtime blob creation
 
