@@ -88,6 +88,9 @@ assert(require "mime")
 assert(require "mime.core")
 assert(type(require "ftp") == "function")
 
+local hamac_time = require "socket.http".request("http://hamac.dev/time.php")
+assert(math.abs(hamac_time - os.time() ) < 5*60)
+
 -- crypt
 local crypt = require "crypt"
 do

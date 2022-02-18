@@ -3,4 +3,4 @@
 	url = https://github.com/lz4/lz4
 [submodule "external/luasocket"]
 	path = external/luasocket
-	url = https://github.com/diegonehab/luasocket
+	url = https://github.com/CDSoft/luasocket

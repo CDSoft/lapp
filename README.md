@@ -300,6 +300,7 @@ The documentation of these modules are available on Lpeg web site:
 ### luasocket: Network support for the Lua language
 
 ```lua
+local socket = require "socket"
 ```
 
 The socket package is based on [Lua Socket](http://w3.impa.br/~diego/software/luasocket/)
