@@ -19,6 +19,7 @@
 
 #include "std.h"
 
+#include "lapp_version.h"
 #include "tools.h"
 
 #include "lua.h"
@@ -44,6 +45,9 @@ const struct lrun_Reg *std_libs(void)
 
 LUAMOD_API int luaopen_std(lua_State *L)
 {
-    (void)L;
+    lua_pushglobaltable(L);                 /* push _G */
+    lua_pushstring(L, LAPP_VERSION);        /* push LAPP_VERSION) */
+    lua_setfield(L, -2, "_LAPP_VERSION");   /* _G._LAPP_VERSION = LAPP_VERSION */
+    lua_remove(L, -2);                      /* remove _G */
     return 0;
 }

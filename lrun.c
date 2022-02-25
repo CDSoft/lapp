@@ -36,6 +36,7 @@
 #include "luasocketlib.h"
 #include "lz4lib.h"
 #include "ps.h"
+#include "rl.h"
 #include "std.h"
 #include "sys.h"
 
@@ -49,6 +50,7 @@ static const luaL_Reg lrun_libs[] = {
     {"lpeg", luaopen_lpeg},
     {"luasocket", luaopen_luasocket},
     {"crypt", luaopen_crypt},
+    {"rl", luaopen_rl},
     {NULL, NULL},
 };
 

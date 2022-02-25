@@ -39,6 +39,7 @@
 #include "luasocketlib.h"
 #include "lz4lib.h"
 #include "ps.h"
+#include "rl.h"
 #include "std.h"
 #include "sys.h"
 
@@ -59,6 +60,7 @@ static const lapp_Lib lapp_libs[] = {
     lpeg_libs,
     luasocket_libs,
     crypt_libs,
+    rl_libs,
     NULL,
 };
 

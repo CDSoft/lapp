@@ -9,6 +9,8 @@ produces a standalone executable for Linux and Windows.
 
 No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 
+`lapp` also comes with `luax` which bundles `lapp` with a Lua REPL.
+
 ## Compilation
 
 Get `lapp` sources on GitHub: <https://gitbuh.com/CDSoft/lapp>, download
@@ -24,10 +26,10 @@ $ make
 ## Installation
 
 ``` sh
-$ make install    # install lapp and lapp.exe to ~/.local/bin
+$ make install    # install lapp and luax to ~/.local/bin
 ```
 
-`lapp` and `lapp.exe` are single autonomous executables.
+`lapp` and `luax` are single autonomous executables.
 They do not need to be installed and can be copied anywhere you want.
 
 ## Precompiled binaries
@@ -35,8 +37,8 @@ They do not need to be installed and can be copied anywhere you want.
 It is usually highly recommended to build `lapp` from sources.
 Precompiled binaries of the latest version are available here:
 
-- Linux: [lapp](http://cdelord.fr/lapp/lapp)
-- Windows: [lapp.exe](http://cdelord.fr/lapp/lapp.exe)
+- Linux: [lapp.tar.gz](http://cdelord.fr/lapp/lapp.tar.gz)
+- Windows: [lapp.zip](http://cdelord.fr/lapp/lapp.zip)
 
 ## Usage
 
@@ -62,9 +64,9 @@ Otherwise the output is assumed to be a Linux executable.
 | Windows | Linux       | `lapp.exe main.lua lib1.lua lib2.lua -o linux_executable`          |
 | Windows | Windows     | `lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe`    |
 
-Running `linux_executable` is equivalent to running `lua main.lua`.
+Running `linux_executable` is equivalent to running `luax main.lua`.
 
-Running `windows_executable.exe` is equivalent to running `lua.exe main.lua`.
+Running `windows_executable.exe` is equivalent to running `luax.exe main.lua`.
 
 ## Dependencies
 
@@ -334,6 +336,16 @@ Methods are:
 - `rmdir(path)` deletes the directory `path`.
 
 - `list(path)` returns an iterator listing the directory `path`.
+
+### rl: readline
+
+The rl (readline) package was initially inspired by
+[ilua](https://github.com/ilua)
+and adapted for lapp.
+
+**rl.read(prompt)** prints `prompt` and returns the string entered by the user.
+
+**rl.add(line)** adds `line` to the readline history (Linux only).
 
 ## License
 

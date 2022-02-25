@@ -78,6 +78,10 @@ STDLIBS_SOURCES += $(wildcard lib/luasocket/*.c) $(wildcard external/luasocket/s
 STDLIBS_LUA += $(wildcard lib/luasocket/*.lua)
 STDLIBS_LUA += $(wildcard external/luasocket/src/*.lua)
 
+# Readline module
+STDLIBS_INC += lib/rl
+STDLIBS_SOURCES += lib/rl/rl.c
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -113,6 +117,7 @@ LUAC = $(BUILD)/linux/lua-$(LUA_VERSION)/src/luac
 LIBLUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/liblua.a
 LRUN = $(BUILD)/linux/lrun
 LAPP = $(BUILD)/linux/lapp
+LUAX = $(BUILD)/linux/luax
 CC_INC = -I. -I$(BUILD)
 CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
 CC_INC += -I$(BUILD)/linux
@@ -124,6 +129,7 @@ MINGW_CC = x86_64-w64-mingw32-gcc
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
 LRUNW = $(BUILD)/win/lrun.exe
 LAPPW = $(BUILD)/win/lapp.exe
+LUAXW = $(BUILD)/win/luax.exe
 MINGW_CC_INC = -I. -I$(BUILD)
 MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
 MINGW_CC_INC += -I$(BUILD)/win
@@ -145,16 +151,18 @@ green = /bin/echo -e "\x1b[32m[$1]\x1b[0m $2"
 blue = /bin/echo -e "\x1b[34m[$1]\x1b[0m $2"
 cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
-linux: $(LAPP)
+linux: $(LAPP) $(LUAX)
 
-windows: $(LAPPW)
+windows: $(LAPPW) $(LUAXW)
 
 clean:
 	rm -rf $(BUILD)
 
-install: $(LAPP) $(LAPPW)
+install: $(LAPP) $(LUAX) $(LAPPW) $(LUAXW)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
+	install -T $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
 	install -T $(LAPPW) $(INSTALL_PATH)/$(notdir $(LAPPW))
+	install -T $(LUAXW) $(INSTALL_PATH)/$(notdir $(LUAXW))
 
 test: $(BUILD)/test/ok.host_linux_target_linux
 test: $(BUILD)/test/ok.host_linux_target_win.exe
@@ -346,6 +354,14 @@ $(BUILD)/$(notdir $(LPEG_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(LPEG_URL) -O $@
+
+# luax
+
+$(LUAX): $(LAPP) luax.lua
+	$(LAPP) luax.lua -o $@
+
+$(LUAXW): $(LAPP) luax.lua
+	$(LAPP) luax.lua -o $@
 
 # Dependencies
 
