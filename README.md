@@ -13,7 +13,7 @@ No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 
 ## Compilation
 
-Get `lapp` sources on GitHub: <https://gitbuh.com/CDSoft/lapp>, download
+Get `lapp` sources on GitHub: <https://github.com/CDSoft/lapp>, download
 submodules and run `make`:
 
 ```sh
