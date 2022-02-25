@@ -105,8 +105,10 @@ $(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-e
 $(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpvm.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/linux/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/linux/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/linux/lrun: CC_OPT += -Wno-error=maybe-uninitialized
 $(BUILD)/win/external/luasocket/src/serial.o: MINGW_OPT += -Wno-error=missing-prototypes
 $(BUILD)/win/external/luasocket/src/options.o: MINGW_OPT += -Wno-error=implicit-function-declaration
+$(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-attributes
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
@@ -130,12 +132,17 @@ LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
 LRUNW = $(BUILD)/win/lrun.exe
 LAPPW = $(BUILD)/win/lapp.exe
 LUAXW = $(BUILD)/win/luax.exe
+LIBSSP_DLL = $(BUILD)/win/libssp-0.dll
+TEST_LIBSSP_DLL = $(BUILD)/test/libssp-0.dll
 MINGW_CC_INC = -I. -I$(BUILD)
 MINGW_CC_INC += -I$(BUILD)/win/lua-$(LUA_VERSION)/src
 MINGW_CC_INC += -I$(BUILD)/win
 MINGW_CC_INC += -I$(LZ4_INC)
 MINGW_CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
-MINGW_CC_LIB = -lm -lws2_32 -ladvapi32
+MINGW_CC_LIB = -lm -lws2_32 -ladvapi32 -lssp
+
+LAPP_TAR = $(BUILD)/linux/lapp.tar.gz
+LAPP_ZIP = $(BUILD)/win/lapp.zip
 
 .PHONY: all test linux windows
 
@@ -151,18 +158,19 @@ green = /bin/echo -e "\x1b[32m[$1]\x1b[0m $2"
 blue = /bin/echo -e "\x1b[34m[$1]\x1b[0m $2"
 cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
-linux: $(LAPP) $(LUAX)
+linux: $(LAPP) $(LUAX) $(LAPP_TAR)
 
-windows: $(LAPPW) $(LUAXW)
+windows: $(LAPPW) $(LUAXW) $(LIBSSP_DLL) $(LAPP_ZIP)
 
 clean:
 	rm -rf $(BUILD)
 
-install: $(LAPP) $(LUAX) $(LAPPW) $(LUAXW)
+install: $(LAPP) $(LUAX) $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
 	install -T $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
 	install -T $(LAPPW) $(INSTALL_PATH)/$(notdir $(LAPPW))
 	install -T $(LUAXW) $(INSTALL_PATH)/$(notdir $(LUAXW))
+	install -T $(LIBSSP_DLL) $(INSTALL_PATH)/$(notdir $(LIBSSP_DLL))
 
 test: $(BUILD)/test/ok.host_linux_target_linux
 test: $(BUILD)/test/ok.host_linux_target_win.exe
@@ -185,7 +193,7 @@ $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
 	@mkdir -p $(dir $@)
 	$(LAPP) $(TEST_SOURCES) -o $@
 
-$(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
+$(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES) $(TEST_LIBSSP_DLL)
 	@$(call cyan,"LAPP",$@)
 	@mkdir -p $(dir $@)
 	@wine $(LAPPW) $(TEST_SOURCES) -o $@
@@ -195,11 +203,11 @@ $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES)
 
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
 	@$(call cyan,"TEST",$@)
-	@$^ Lua is great > $@
+	@$< Lua is great > $@
 
-$(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe
+$(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe $(TEST_LIBSSP_DLL)
 	@$(call cyan,"TEST",$@)
-	@wine $^ Lua is great | dos2unix > $@
+	@wine $< Lua is great | dos2unix > $@
 
 # Native and cross compilations shall produce the same executable
 
@@ -362,6 +370,38 @@ $(LUAX): $(LAPP) luax.lua
 
 $(LUAXW): $(LAPP) luax.lua
 	$(LAPP) luax.lua -o $@
+
+# libssp-0.dll
+
+# define variable $1 if $2 exists
+define defvar
+ifneq ($(wildcard $(strip $(2))),)
+$(strip $(1)) := $(strip $(2))
+endif
+endef
+
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))  # Fedora 35
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/i686-w64-mingw32/10-posix/libssp-0.dll))      # Ubuntu 21.10
+
+ifeq ($(MINGW_LIBSSP_DLL),)
+$(error libssp-0.dll not found)
+endif
+
+$(LIBSSP_DLL): $(MINGW_LIBSSP_DLL)
+	cp $< $@
+
+$(TEST_LIBSSP_DLL): $(MINGW_LIBSSP_DLL)
+	cp $< $@
+
+# Binary archives
+
+$(LAPP_TAR): README.md $(LAPP) $(LUAX)
+	tar -czf $@ \
+		-C $(dir $(word 1,$^)) $(notdir $(word 1,$^)) \
+		-C $(dir $(word 2,$^)) $(notdir $(wordlist 2,3,$^))
+
+$(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
+	zip -j $@ $^
 
 # Dependencies
 
