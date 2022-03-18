@@ -21,6 +21,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef __MINGW32__
+#include <windows.h>
+#else
+#include <unistd.h>
+#endif
+
 #include "header.h"
 #include "tools.h"
 
@@ -66,19 +72,33 @@ static void createargtable(lua_State *L, const char **argv, int argc)
     lua_setglobal(L, "arg");
 }
 
+static void get_exe(const char *arg0, char *name, size_t name_size)
+{
+#ifdef __MINGW32__
+    DWORD n = GetModuleFileName(NULL, name, name_size);
+    if (n == 0) error(arg0, "Can not be found");
+#else
+    ssize_t n = readlink("/proc/self/exe", name, name_size);
+    if (n < 0) perror(arg0);
+#endif
+    name[n] = '\0';
+}
+
 int main(int argc, const char *argv[])
 {
     /* Lua payload extraction */
-    FILE *f = fopen(argv[0], "rb");
-    if (f == NULL) error(argv[0], "can not be open");
+    char exe[1024];
+    get_exe(argv[0], exe, sizeof(exe));
+    FILE *f = fopen(exe, "rb");
+    if (f == NULL) perror(exe);
 
     t_header header;
     fseek(f, -(long)sizeof(header), SEEK_END);
-    if (fread(&header, sizeof(header), 1, f) != 1) error(argv[0], "can not be read");
+    if (fread(&header, sizeof(header), 1, f) != 1) perror(argv[0]);
     if (memcmp(header.magic, LAPP_SIGNATURE, sizeof(header.magic)) != 0) error(argv[0], "Lua application not found");
     fseek(f, -(long)(header.compressed_size + sizeof(header)), SEEK_END);
     char *compressed_chunk = safe_malloc(header.compressed_size);
-    if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) error(argv[0], "Can not read Lua chunk");
+    if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) perror(argv[0]);
     fclose(f);
 
     char *chunk = safe_malloc(header.uncompressed_size);
@@ -97,6 +117,7 @@ int main(int argc, const char *argv[])
         chunk[i] += chunk[i-1];
     }
 
+    /* Lua interpretor */
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
     createargtable(L, argv, argc);
