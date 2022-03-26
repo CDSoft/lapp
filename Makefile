@@ -22,8 +22,9 @@ LUA_URL = http://www.lua.org/ftp/lua-$(LUA_VERSION).tar.gz
 INSTALL_PATH = $(HOME)/.local/bin
 
 BUILD = .build
+CACHE = .cache
 
-LUA_ARCHIVE = $(BUILD)/lua-$(LUA_VERSION).tar.gz
+LUA_ARCHIVE = $(CACHE)/lua-$(LUA_VERSION).tar.gz
 
 LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
 LZ4_INC = external/lz4/lib
@@ -164,6 +165,9 @@ windows: $(LAPPW) $(LUAXW) $(LIBSSP_DLL) $(LAPP_ZIP)
 
 clean:
 	rm -rf $(BUILD)
+
+distclean: clean
+	rm -rf $(CACHE)
 
 install: $(LAPP) $(LUAX) $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
@@ -353,12 +357,12 @@ $(BUILD)/%.luao: %.lua
 
 # lpeg
 
-$(LPEG_SOURCES) $(LPEG_SCRIPTS) &: $(BUILD)/$(notdir $(LPEG_URL))
+$(LPEG_SOURCES) $(LPEG_SCRIPTS) &: $(CACHE)/$(notdir $(LPEG_URL))
 	@$(call cyan,"TAR",$@)
 	@tar -xzf $< -C $(BUILD)
 	@touch $(LPEG_SOURCES) $(LPEG_SCRIPTS)
 
-$(BUILD)/$(notdir $(LPEG_URL)):
+$(CACHE)/$(notdir $(LPEG_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(LPEG_URL) -O $@
@@ -405,4 +409,4 @@ $(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
 
 # Dependencies
 
--include $(shell find $(BUILD) -name "*.d")
+-include $(shell find $(BUILD) -name "*.d" 2>/dev/null)
