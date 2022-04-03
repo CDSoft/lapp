@@ -29,11 +29,6 @@ LUA_ARCHIVE = $(CACHE)/lua-$(LUA_VERSION).tar.gz
 LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
 LZ4_INC = external/lz4/lib
 
-# Acme demonstration module
-STDLIBS_INC += lib/acme
-STDLIBS_SOURCES += lib/acme/acme.c
-STDLIBS_LUA += lib/acme/acmelua.lua
-
 # Basic standard functions
 STDLIBS_INC += lib/std
 STDLIBS_SOURCES += $(wildcard lib/std/*.c)
@@ -145,7 +140,7 @@ MINGW_CC_LIB = -lm -lws2_32 -ladvapi32 -lssp
 LAPP_TAR = $(BUILD)/linux/lapp.tar.gz
 LAPP_ZIP = $(BUILD)/win/lapp.zip
 
-.PHONY: all test linux windows
+.PHONY: all test diff linux windows
 
 .SECONDARY:
 
@@ -183,7 +178,7 @@ test: $(BUILD)/test/ok.host_win_target_win.exe
 test: $(BUILD)/test/same.linux_native_and_cross
 test: $(BUILD)/test/same.win.exe_native_and_cross
 
-TEST_SOURCES = test/main.lua test/lib.lua
+TEST_SOURCES = test/main.lua $(filter-out test/main.lua,$(wildcard test/*.lua))
 
 $(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
 	@$(call cyan,"DIFF",$^)
@@ -205,13 +200,16 @@ $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES) $(TEST_LIBSSP_DLL)
 
 # Test results
 
+diff: $(BUILD)/test/res.host_linux_target_linux test/expected_result.txt
+	@meld $^
+
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
 	@$(call cyan,"TEST",$@)
-	@$< Lua is great > $@
+	@$< Lua is great; echo $$? > $@
 
 $(BUILD)/test/res.host_%_target_win.exe: $(BUILD)/test/bin.host_%_target_win.exe $(TEST_LIBSSP_DLL)
 	@$(call cyan,"TEST",$@)
-	@wine $< Lua is great | dos2unix > $@
+	@wine $< Lua is great; echo $$? > $@
 
 # Native and cross compilations shall produce the same executable
 

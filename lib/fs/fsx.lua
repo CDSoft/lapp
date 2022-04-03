@@ -20,35 +20,48 @@ http://cdelord.fr/lapp
 
 local fs = require "fs"
 
+local flatten = require"fun".flatten
+
 function fs.join(...)
     return table.concat({...}, fs.sep)
 end
 
+function fs.is_file(name)
+    return fs.stat(name).type == "file"
+end
+
+function fs.is_dir(name)
+    return fs.stat(name).type == "directory"
+end
+
 -- fs.walk(path) iterates over the file names in path and its subdirectories
-function fs.walk(path)
+function fs.walk(path, reverse)
+    if type(path) == "boolean" and reverse == nil then
+        path, reverse = nil, path
+    end
     local dirs = {path or "."}
-    local files = {}
-    return function()
-        if #files > 0 then
-            return table.remove(files, 1)
-        elseif #dirs > 0 then
-            local dir = table.remove(dirs)
-            local names = fs.dir(dir)
-            if names then
-                table.sort(names)
-                for i = 1, #names do
-                    local name = dir..fs.sep..names[i]
-                    local stat = fs.stat(name)
-                    if stat then
-                        if stat.type == "directory" then
-                            table.insert(dirs, name)
-                        else
-                            table.insert(files, name)
+    local acc_files = {}
+    local acc_dirs = {}
+    while #dirs > 0 do
+        local dir = table.remove(dirs)
+        local names = fs.dir(dir)
+        if names then
+            table.sort(names)
+            for i = 1, #names do
+                local name = dir..fs.sep..names[i]
+                local stat = fs.stat(name)
+                if stat then
+                    if stat.type == "directory" then
+                        dirs[#dirs+1] = name
+                        if reverse then acc_dirs = {name, acc_dirs}
+                        else acc_dirs[#acc_dirs+1] = name
                         end
+                    else
+                        acc_files[#acc_files+1] = name
                     end
                 end
-                return dir
             end
         end
     end
+    return flatten(reverse and {acc_files, acc_dirs} or {acc_dirs, acc_files})
 end

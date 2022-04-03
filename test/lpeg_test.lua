@@ -18,21 +18,11 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
--- Check the test environment first
-require "test_test"()
+---------------------------------------------------------------------
+-- lpeg
+---------------------------------------------------------------------
 
--- lapp builtins
-require "arg_test"()
-require "require_test"()
-
--- lapp libraries
-require "fun_test"()
-require "string_test"()
-require "sys_test"()
-require "fs_test"()
-require "ps_test"()
-require "lz4_test"()
-require "crypt_test"()
-require "lpeg_test"()
-require "socket_test"()
-require "rl_test"()
+return function()
+    assert(require "lpeg")
+    assert(require "re")
+end

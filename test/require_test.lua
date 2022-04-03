@@ -18,6 +18,20 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
-return {
-    launch = function() print "Three, Two, One, Boom!" end,
-}
+---------------------------------------------------------------------
+-- embeded modules can be loaded with require
+---------------------------------------------------------------------
+
+return function()
+    local lib = require "lib"
+    eq(lib.hello "World":gsub("\t", "    "), [[
+@test/lib.lua says: Hello World
+Traceback test
+stack traceback:
+    test/lib.lua:25: in function 'lib.hello'
+    test/require_test.lua:27: in function 'require_test'
+    test/main.lua:26: in main chunk
+    (...tail calls...)
+    [C]: in function 'require'
+    ?: in main chunk]])
+end

@@ -32,7 +32,6 @@
 
 #include "lz4hc.h"
 
-#include "acme.h"
 #include "crypt.h"
 #include "fs.h"
 #include "lpeg.h"
@@ -51,7 +50,6 @@
 static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <executable name>";
 
 static const lapp_Lib lapp_libs[] = {
-    acme_libs,
     std_libs,
     fs_libs,
     ps_libs,

@@ -104,7 +104,7 @@ end
 function fun.map(f, xs)
     if type(f) == "table" and type(xs) == "function" then f, xs = xs, f end
     local ys = {}
-    for i, x in ipairs(xs) do table.insert(ys, f(x, i)) end
+    for i, x in ipairs(xs) do table.insert(ys, (f(x, i))) end
     return ys
 end
 

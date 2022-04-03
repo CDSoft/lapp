@@ -35,7 +35,6 @@
 
 #include "lz4.h"
 
-#include "acme.h"
 #include "crypt.h"
 #include "fs.h"
 #include "lpeg.h"
@@ -47,7 +46,6 @@
 #include "sys.h"
 
 static const luaL_Reg lrun_libs[] = {
-    {"acme", luaopen_acme},
     {"std", luaopen_std},
     {"fs", luaopen_fs},
     {"ps", luaopen_ps},

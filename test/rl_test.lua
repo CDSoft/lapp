@@ -18,4 +18,13 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
-local luasocket = require "luasocket"
+---------------------------------------------------------------------
+-- readline
+---------------------------------------------------------------------
+
+local rl = require "rl"
+
+return function()
+    eq(type(rl.read), "function")
+    eq(type(rl.add), "function")
+end

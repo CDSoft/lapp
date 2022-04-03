@@ -1,15 +1,1 @@
-arg = {Lua, is, great}
-@test/lib.lua says: Hello World
-Traceback test
-stack traceback:
-	test/lib.lua:25: in function 'lib.hello'
-	test/main.lua:26: in main chunk
-	(...tail calls...)
-	[C]: in function 'require'
-	?: in main chunk
-Test of the acme module (C & Lua)
-3, 2, 1, boom!
-Three, Two, One, Boom!
-squares	1, 4, 9, 16, 25, 36, 49, 64, 81, 100
-split	ab, cd, ef, 
-words	ab, cd, ef
+0

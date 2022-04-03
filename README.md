@@ -125,7 +125,7 @@ local fun = require "fun"
 the value of `...` in the environment defined by the table `t`. An interpolator
 can be given another table to build a new interpolator with new values.
 
-`lapp` adds a few functions to the builtin string module:
+`lapp` adds a few functions to the builtin `string` module:
 
 **`string.split(s, sep, maxsplit, plain)`{.lua}** splits `s` using `sep` as a separator.
 If `plain` is true, the separator is considered as plain text.
@@ -151,25 +151,29 @@ local fs = require "fs"
 **`fs.dir([path])`{.lua}** returns the list of files and directories in
 `path` (the default path is the current directory).
 
-**`fs.dir([path])`{.lua}** returns an iterator listing files and directories in
-`path` (the default path is the current directory).
-
-**`fs.walk([path])`{.lua}** returns an iterator listing directory and file names
-in `path` and its subdirectories (the default path is the current directory).
+**`fs.walk([path], [reverse])`{.lua}** returns a list listing directory and
+file names in `path` and its subdirectories (the default path is the current
+directory). If `reverse` is true, the list is built in a reverse order
+(suitable for recursive directory removal)
 
 **`fs.mkdir(path)`{.lua}** creates a new directory `path`.
 
-**`fs.rename(old_name, new_name)`{.lua}** renames the file `old_name` to `new_name`.
+**`fs.rename(old_name, new_name)`{.lua}** renames the file `old_name` to
+`new_name`.
 
 **`fs.remove(name)`{.lua}** deletes the file `name`.
 
-**`fs.copy(source_name, target_name)`{.lua}** copies file `source_name` to `target_name`.
-The attributes and times are preserved.
+**`fs.copy(source_name, target_name)`{.lua}** copies file `source_name` to
+`target_name`. The attributes and times are preserved.
+
+**`fs.is_file(name)`** returns `true` if `name` is a file.
+
+**`fs.is_dir(name)`** returns `true` if `name` is a directory.
 
 **`fs.stat(name)`{.lua}** reads attributes of the file `name`.  Attributes are:
 
 - `name`: name
-- type: "file" or "directory"
+- `type`: `"file"` or `"directory"`
 - `size`: size in bytes
 - `mtime`, `atime`, `ctime`: modification, access and creation times.
 - `mode`: file permissions
@@ -189,11 +193,14 @@ file `other_file_name` (string containing the name of another file).
 **`fs.chmod(name, bit1, ..., bitn)`{.lua}** sets file `name` permissions as
 `bit1` or ... or `bitn` (integers).
 
-**`fs.touch(name)`{.lua}** sets the access time and the modification time of file `name` with the current time.
+**`fs.touch(name)`{.lua}** sets the access time and the modification time of
+file `name` with the current time.
 
-**`fs.touch(name, number)`{.lua}** sets the access time and the modification time of file `name` with `number`.
+**`fs.touch(name, number)`{.lua}** sets the access time and the modification
+time of file `name` with `number`.
 
-**`fs.touch(name, other_name)`{.lua}** sets the access time and the modification time of file `name` with the times of file `other_name`.
+**`fs.touch(name, other_name)`{.lua}** sets the access time and the
+modification time of file `name` with the times of file `other_name`.
 
 **`fs.basename(path)`{.lua}** return the last component of path.
 
@@ -201,13 +208,19 @@ file `other_file_name` (string containing the name of another file).
 
 **`fs.absname(path)`{.lua}** return the absolute path name of path.
 
+**`fs.join(...)`{.lua}** return a path name made of several path components
+(separated by `fs.sep`).
+
 **`fs.sep`{.lua}** is the directory separator (/ or \\).
 
-**`fs.uR, fs.uW, fs.uX`{.lua}** are the User Read/Write/eXecute mask for `fs.chmod`.
+**`fs.uR, fs.uW, fs.uX`{.lua}** are the User Read/Write/eXecute mask for
+`fs.chmod`.
 
-**`fs.gR, fs.gW, fs.gX`{.lua}** are the Group Read/Write/eXecute mask for `fs.chmod`.
+**`fs.gR, fs.gW, fs.gX`{.lua}** are the Group Read/Write/eXecute mask for
+`fs.chmod`.
 
-**`fs.oR, fs.oW, fs.oX`{.lua}** are the Other Read/Write/eXecute mask for `fs.chmod`.
+**`fs.oR, fs.oW, fs.oX`{.lua}** are the Other Read/Write/eXecute mask for
+`fs.chmod`.
 
 **`fs.aR, fs.aW, fs.aX`{.lua}** are All Read/Write/eXecute mask for `fs.chmod`.
 
@@ -239,11 +252,14 @@ local sys = require "sys"
 local lz4 = require "lz4"
 ```
 
-**`lz4.compress(data)`{.lua}** compresses `data` with LZ4 and returns the compressed string.
+**`lz4.compress(data)`{.lua}** compresses `data` with LZ4 and returns the
+compressed string.
 
-**`lz4.compress_hc(data)`{.lua}** compresses `data` with LZ4HC and returns the compressed string.
+**`lz4.compress_hc(data)`{.lua}** compresses `data` with LZ4HC and returns the
+compressed string.
 
-**`lz4.decompress(data)`{.lua}** decompresses `data` with LZ4 and returns the decompressed string.
+**`lz4.decompress(data)`{.lua}** decompresses `data` with LZ4 and returns the
+decompressed string.
 
 ### crypt: cryptography module
 
@@ -264,24 +280,23 @@ local crypt = require "crypt"
 **`crypt.crc32(data)`{.lua}** computes the CRC32 of `data`.
 
 **`crypt.AES(password [,keylen [,mode] ])`{.lua}** returns an AES codec.
-`password` is the encryption/decryption key, `keylen` is the length
-of the key (128 (default), 192 or 256), `mode` is the encryption/decryption
-mode ("cbc" (default) or "ecb").
-`crypt.AES` objects have two methods: `encrypt(data)` and `decrypt(data)`.
+`password` is the encryption/decryption key, `keylen` is the length of the key
+(128 (default), 192 or 256), `mode` is the encryption/decryption mode ("cbc"
+(default) or "ecb"). `crypt.AES` objects have two methods: `encrypt(data)` and
+`decrypt(data)`.
 
-**`crypt.BTEA(password)`{.lua}** returns a BTEA codec
-(a tiny cipher with reasonable security and efficiency,
-see http://en.wikipedia.org/wiki/XXTEA).
+**`crypt.BTEA(password)`{.lua}** returns a BTEA codec (a tiny cipher with
+reasonable security and efficiency, see http://en.wikipedia.org/wiki/XXTEA).
 `password` is the encryption/decryption key (only the first 16 bytes are used).
 `crypt.BTEA` objects have two methods: `encrypt(data)` and `decrypt(data)`.
-BTEA encrypts 32-bit words so the length of data should be a multiple of 4
-(if not, BTEA will add null padding at the end of data).
+BTEA encrypts 32-bit words so the length of data should be a multiple of 4 (if
+not, BTEA will add null padding at the end of data).
 
-**`crypt.RC4(password, drop)`{.lua}** return a RC4 codec
-(a popular stream cypher, see http://en.wikipedia.org/wiki/RC4).
-`password` is the encryption/decryption key.
-`drop` is the numbre of bytes ignores before encoding (768 by default).
-`crypt.RC4` returns the encryption/decryption function.
+**`crypt.RC4(password, drop)`{.lua}** return a RC4 codec (a popular stream
+cypher, see http://en.wikipedia.org/wiki/RC4). `password` is the
+encryption/decryption key. `drop` is the numbre of bytes ignores before
+encoding (768 by default). `crypt.RC4` returns the encryption/decryption
+function.
 
 **`crypt.random(bits)`{.lua}** returns a string with `bits` random bits.
 
@@ -305,8 +320,8 @@ The documentation of these modules are available on Lpeg web site:
 local socket = require "socket"
 ```
 
-The socket package is based on [Lua Socket](http://w3.impa.br/~diego/software/luasocket/)
-and adapted for `lapp`.
+The socket package is based on [Lua
+Socket](http://w3.impa.br/~diego/software/luasocket/) and adapted for `lapp`.
 
 The documentation of `Lua Socket` is available at the [Lua Socket documentation
 web site](http://w3.impa.br/~diego/software/luasocket/reference.html).

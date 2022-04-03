@@ -41,11 +41,16 @@ function string.split(s, sep, maxsplit, plain)
 end
 
 function string.lines(s)
-    return s:split('\r?\n\r?')
+    local lines = s:split('\r?\n\r?')
+    if lines[#lines] == "" and s:match('\r?\n\r?$') then table.remove(lines) end
+    return lines
 end
 
 function string.words(s)
-    return s:split('%s+')
+    local words = s:split('%s+')
+    if words[1] == "" and s:match('^%s+') then table.remove(words, 1) end
+    if words[#words] == "" and s:match('%s+$') then table.remove(words) end
+    return words
 end
 
 function string.ltrim(s)

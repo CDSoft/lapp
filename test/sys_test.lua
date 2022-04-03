@@ -18,21 +18,21 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
--- Check the test environment first
-require "test_test"()
+---------------------------------------------------------------------
+-- sys
+---------------------------------------------------------------------
 
--- lapp builtins
-require "arg_test"()
-require "require_test"()
+local sys = require "sys"
 
--- lapp libraries
-require "fun_test"()
-require "string_test"()
-require "sys_test"()
-require "fs_test"()
-require "ps_test"()
-require "lz4_test"()
-require "crypt_test"()
-require "lpeg_test"()
-require "socket_test"()
-require "rl_test"()
+return function()
+    -- OS detection
+    local is_linux = io.popen("echo %PATH%"):read("a"):trim() == "%PATH%"
+
+    if is_linux then
+        eq(sys.hostname(), io.popen("hostname"):read("a"):trim())
+    else
+        eq(sys.hostname():upper(), io.popen("hostname"):read("a"):trim():upper())
+    end
+
+    eq(sys.platform, is_linux and "Linux" or "Windows")
+end

@@ -18,21 +18,23 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
--- Check the test environment first
-require "test_test"()
+---------------------------------------------------------------------
+-- ps
+---------------------------------------------------------------------
 
--- lapp builtins
-require "arg_test"()
-require "require_test"()
+local ps = require "ps"
 
--- lapp libraries
-require "fun_test"()
-require "string_test"()
-require "sys_test"()
-require "fs_test"()
-require "ps_test"()
-require "lz4_test"()
-require "crypt_test"()
-require "lpeg_test"()
-require "socket_test"()
-require "rl_test"()
+local socket = require "socket"
+
+local function sleep_test(n)
+    local t0 = socket.gettime()
+    ps.sleep(n)
+    local t1 = socket.gettime()
+    local dt = t1 - t0
+    assert(n <= dt and dt <= n+0.001)
+end
+
+return function()
+    sleep_test(0)
+    sleep_test(0.142)
+end

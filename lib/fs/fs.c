@@ -403,6 +403,12 @@ static int fs_touch(lua_State *L)
     {
         return bl_pusherror(L, "bad argument #2 to touch (none, nil, number or string expected)");
     }
+    if (access(path, F_OK) != 0)
+    {
+        int fd = open(path, O_CREAT, S_IRUSR | S_IWUSR);
+        if (fd < 0) return bl_pushresult(L, 0, path);
+        if (fd >= 0) close(fd);
+    }
     return bl_pushresult(L, utime(path, &t) == 0, path);
 }
 

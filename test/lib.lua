@@ -21,7 +21,7 @@ http://cdelord.fr/lapp
 return {
     hello = function(name)
         local file = debug.getinfo(1, 'S').source
-        print(file.." says: Hello "..name)
-        print(debug.traceback("Traceback test"))
+        return file.." says: Hello "..name.."\n"..
+               debug.traceback("Traceback test")
     end,
 }
