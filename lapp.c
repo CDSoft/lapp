@@ -42,12 +42,23 @@
 #include "std.h"
 #include "sys.h"
 
+#define STRINGIFY(x) #x
+#define TOSTRING(x) STRINGIFY(x)
+
 #define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
                   "Copyright (C) 2021-2022 Christophe Delord (cdelord.fr/lapp)\n"   \
                   "Based on "LUA_COPYRIGHT"\n"                                      \
                 )
 
-static const char *usage = "usage: lapp <main Lua script> [Lua libraries] -o <executable name>";
+static const char *usage =
+    "usage: lapp <main Lua script> [Lua libraries] -o <executable name>\n"
+    "\n"
+    "supported targets:\n"
+    "    " TOSTRING(KERNEL) "\t" TOSTRING(MACHINE) "\n"
+#if HAS_MINGW
+    "    " "Windows" "\t" TOSTRING(MACHINE) "\n"
+#endif
+    ;
 
 static const lapp_Lib lapp_libs[] = {
     std_libs,
@@ -64,8 +75,10 @@ static const lapp_Lib lapp_libs[] = {
 
 extern const unsigned char lrun_linux[];
 extern const unsigned int lrun_linux_size;
+#if HAS_MINGW
 extern const unsigned char lrun_win[];
 extern const unsigned int lrun_win_size;
+#endif
 
 typedef struct
 {
@@ -198,7 +211,7 @@ int main(int argc, const char *argv[])
 {
     printf("%s\n", WELCOME);
 
-    if (argc <= 1) error(argv[0], usage);
+    if (argc <= 1) error(NULL, usage);
 
     const char *output = NULL;
     char *main_name = NULL;
@@ -245,7 +258,7 @@ int main(int argc, const char *argv[])
     {
         if (strcmp(argv[i], "-o") == 0)
         {
-            if (i >= argc-1) error(argv[0], usage);
+            if (i >= argc-1) error(NULL, usage);
             output = argv[++i];
             continue;
         }
@@ -274,7 +287,7 @@ int main(int argc, const char *argv[])
         buffer_cat(&b, "\",\n");
         chunk_free(&chunk);
     }
-    if (main_name == NULL) error(argv[0], usage);
+    if (main_name == NULL) error(NULL, usage);
     buffer_cat(&b, "}\n");
     buffer_cat(&b,
         "table.insert(package.searchers, 1, function(name)\n"
@@ -297,9 +310,13 @@ int main(int argc, const char *argv[])
 
         if (strncasecmp(ext(output), ".exe", 4) == 0)
         {
+#if HAS_MINGW
             lrun = lrun_win;
             lrun_size = lrun_win_size;
             target = "Windows";
+#else
+            error(argv[0], "Windows target not supported");
+#endif
         }
         else
         {
@@ -308,7 +325,7 @@ int main(int argc, const char *argv[])
             target = "Linux";
         }
 
-        printf("    Target          : %s\n", target);
+        printf("    Target          : %s %s\n", target, TOSTRING(MACHINE));
 
         t_chunk main_chunk = empty_chunk;
         main_chunk.source = b.data;

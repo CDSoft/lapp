@@ -26,19 +26,23 @@ $ make
 ## Installation
 
 ``` sh
-$ make install    # install lapp and luax to ~/.local/bin
+$ make install    # install lapp and luax to ~/.local/bin or ~/bin
+$ make install PREFIX=/usr/bin  # install lapp and luax to /usr/bin
 ```
 
 `lapp` and `luax` are single autonomous executables.
 They do not need to be installed and can be copied anywhere you want.
+
+`make install` only install Linux binaries and is not meant to be used on Windows.
 
 ## Precompiled binaries
 
 It is usually highly recommended to build `lapp` from sources.
 Precompiled binaries of the latest version are available here:
 
-- Linux: [lapp.tar.gz](http://cdelord.fr/lapp/lapp.tar.gz)
-- Windows: [lapp.zip](http://cdelord.fr/lapp/lapp.zip)
+- Linux: [lapp-linux-x86_64.tar.gz](http://cdelord.fr/lapp/lapp-linux-x86_64.tar.gz)
+- Raspberry Pi: [lapp-linux-aarch64.tar.gz](http://cdelord.fr/lapp/lapp-linux-aarch64.tar.gz)
+- Windows: [lapp-win-x86_64.zip](http://cdelord.fr/lapp/lapp-win-x86_64.zip)
 
 ## Usage
 

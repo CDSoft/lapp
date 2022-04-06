@@ -19,7 +19,7 @@
 LUA_VERSION = 5.4.4
 LUA_URL = http://www.lua.org/ftp/lua-$(LUA_VERSION).tar.gz
 
-INSTALL_PATH = $(HOME)/.local/bin
+INSTALL_PATH = $(firstword $(wildcard $(PREFIX) $(HOME)/.local/bin $(HOME)/bin))
 
 BUILD = .build
 CACHE = .cache
@@ -137,16 +137,37 @@ MINGW_CC_INC += -I$(LZ4_INC)
 MINGW_CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
 MINGW_CC_LIB = -lm -lws2_32 -ladvapi32 -lssp
 
-LAPP_TAR = $(BUILD)/linux/lapp.tar.gz
-LAPP_ZIP = $(BUILD)/win/lapp.zip
+KERNEL  := $(shell uname -s)
+MACHINE := $(shell uname -m)
 
-.PHONY: all test diff linux windows
+CC_OPT += -DKERNEL=$(KERNEL) -DMACHINE=$(MACHINE)
+
+LAPP_TAR = $(BUILD)/linux/lapp-$(shell echo $(KERNEL) | tr A-Z a-z)-$(MACHINE).tar.gz
+LAPP_ZIP = $(BUILD)/win/lapp-win-$(MACHINE).zip
+
+ifeq ($(shell which $(MINGW_CC) 2>/dev/null),)
+HAS_MINGW = 0
+else
+HAS_MINGW = 1
+endif
+
+CC_OPT += -DHAS_MINGW=$(HAS_MINGW)
+
+ifeq ($(shell which wine 2>/dev/null),)
+HAS_WINE = 0
+else
+HAS_WINE = 1
+endif
+
+.PHONY: all test diff linux windows install install_linux install_windows
 
 .SECONDARY:
 
 all: compile_flags.txt
 all: linux
+ifeq ($(HAS_MINGW),1)
 all: windows
+endif
 all: test
 
 red = /bin/echo -e "\x1b[31m[$1]\x1b[0m $2"
@@ -156,7 +177,9 @@ cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
 linux: $(LAPP) $(LUAX) $(LAPP_TAR)
 
+ifeq ($(HAS_MINGW),1)
 windows: $(LAPPW) $(LUAXW) $(LIBSSP_DLL) $(LAPP_ZIP)
+endif
 
 clean:
 	rm -rf $(BUILD)
@@ -164,19 +187,21 @@ clean:
 distclean: clean
 	rm -rf $(CACHE)
 
-install: $(LAPP) $(LUAX) $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
+# install on Linux only
+install: $(LAPP) $(LUAX)
+	@test -n "$(INSTALL_PATH)" || (echo "No installation path found" && false)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
 	install -T $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
-	install -T $(LAPPW) $(INSTALL_PATH)/$(notdir $(LAPPW))
-	install -T $(LUAXW) $(INSTALL_PATH)/$(notdir $(LUAXW))
-	install -T $(LIBSSP_DLL) $(INSTALL_PATH)/$(notdir $(LIBSSP_DLL))
 
 test: $(BUILD)/test/ok.host_linux_target_linux
+
+ifeq ($(HAS_MINGW)$(HAS_WINE),11)
 test: $(BUILD)/test/ok.host_linux_target_win.exe
 test: $(BUILD)/test/ok.host_win_target_linux
 test: $(BUILD)/test/ok.host_win_target_win.exe
 test: $(BUILD)/test/same.linux_native_and_cross
 test: $(BUILD)/test/same.win.exe_native_and_cross
+endif
 
 TEST_SOURCES = test/main.lua $(filter-out test/main.lua,$(wildcard test/*.lua))
 
@@ -280,10 +305,16 @@ LRUN_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LRUN_SOURCES_LINUX))
 LRUNW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LRUN_SOURCES_WIN))
 
 LAPP_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LAPP_SOURCES_LINUX))
-LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o $(BUILD)/linux/lrun_win_blob.o
+LAPP_OBJ += $(BUILD)/linux/lrun_linux_blob.o
+ifeq ($(HAS_MINGW),1)
+LAPP_OBJ += $(BUILD)/linux/lrun_win_blob.o
+endif
 
 LAPPW_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LAPP_SOURCES_WIN))
-LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o $(BUILD)/win/lrun_win_blob.o
+LAPPW_OBJ += $(BUILD)/win/lrun_linux_blob.o
+ifeq ($(HAS_MINGW),1)
+LAPPW_OBJ += $(BUILD)/win/lrun_win_blob.o
+endif
 
 LZ4_OBJ = $(patsubst %.c,$(BUILD)/linux/%.o,$(LZ4_SRC))
 LZ4W_OBJ = $(patsubst %.c,$(BUILD)/win/%.o,$(LZ4_SRC))
@@ -382,6 +413,8 @@ $(strip $(1)) := $(strip $(2))
 endif
 endef
 
+ifeq ($(HAS_MINGW),1)
+
 $(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))  # Fedora 35
 $(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/i686-w64-mingw32/10-posix/libssp-0.dll))      # Ubuntu 21.10
 
@@ -394,6 +427,8 @@ $(LIBSSP_DLL): $(MINGW_LIBSSP_DLL)
 
 $(TEST_LIBSSP_DLL): $(MINGW_LIBSSP_DLL)
 	cp $< $@
+
+endif
 
 # Binary archives
 
