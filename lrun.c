@@ -82,6 +82,15 @@ static void get_exe(const char *arg0, char *name, size_t name_size)
     name[n] = '\0';
 }
 
+static int traceback(lua_State *L)
+{
+    const char *msg = lua_tostring(L, 1);
+    luaL_traceback(L, L, msg, 1);
+    fprintf(stderr, "%s\n", lua_tostring(L, -1));
+    lua_pop(L, 1);
+    return 0;
+}
+
 int main(int argc, const char *argv[])
 {
     /* Lua payload extraction */
@@ -130,6 +139,11 @@ int main(int argc, const char *argv[])
     /* Lua payload execution */
     if (luaL_loadbuffer(L, chunk, header.uncompressed_size, NULL) != LUA_OK) error(argv[0], lua_tostring(L, -1));
     free(chunk);
-    if (lua_pcall(L, 0, LUA_MULTRET, 0) != LUA_OK) error(argv[0], lua_tostring(L, -1));
+    int base = lua_gettop(L);  /* function index */
+    lua_pushcfunction(L, traceback); /* push message handler */
+    lua_insert(L, base);  /* put it under function and args */
+    int status = lua_pcall(L, 0, 0, base);
+    lua_remove(L, base);  /* remove message handler from the stack */
     lua_close(L);
+    return status;
 }

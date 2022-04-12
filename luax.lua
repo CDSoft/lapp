@@ -39,6 +39,18 @@ local function print_version()
     print(("Lua eXtended - %s REPL powered by lapp %s (http://cdelord.fr/lapp)"):format(_VERSION, _LAPP_VERSION))
 end
 
+local function traceback(message)
+    local trace = {"luax: "..message.."\n"}
+    local luax = 0
+    for _, line in ipairs(debug.traceback():lines()) do
+        if line:match "^%s+luax.lua:" then luax = luax + 1
+        elseif luax < 2 then table.insert(trace, line.."\n")
+        end
+    end
+    table.remove(trace)
+    io.stderr:write(table.concat(trace))
+end
+
 -- Read options
 
 local interactive = #arg == 0
@@ -56,15 +68,14 @@ while #arg > 0 do
         shift(2)
         local chunk, err = load(stat, "=(command line)")
         if not chunk then
-            print(("%s: %s"):format(arg[0], err))
+            io.stderr:write(("%s: %s\n"):format(arg[0], err))
             os.exit(1)
         end
-        local res = table.pack(pcall(chunk))
+        local res = table.pack(xpcall(chunk, traceback))
         local ok = table.remove(res, 1)
         if ok then
             print(table.unpack(res))
         else
-            print(("%s: %s"):format(arg[0], table.unpack(res)))
             os.exit(1)
         end
     elseif a == '-i' then
@@ -104,15 +115,14 @@ if #arg >= 1 then
         chunk, err = loadfile(script)
     end
     if not chunk then
-        print(("%s: %s"):format(script, err))
+        io.stderr:write(("%s: %s\n"):format(script, err))
         os.exit(1)
     end
-    local res = table.pack(pcall(chunk))
+    local res = table.pack(xpcall(chunk, traceback))
     local ok = table.remove(res, 1)
     if ok then
         print(table.unpack(res))
     else
-        print(("%s: %s"):format(arg[0], table.unpack(res)))
         os.exit(1)
     end
     arg[0] = luax
@@ -128,12 +138,12 @@ if interactive then
             if err:match "<eof>$" then return "cont" end
             return nil, err
         end
-        local res = table.pack(pcall(chunk))
+        local res = table.pack(xpcall(chunk, traceback))
         local ok = table.remove(res, 1)
         if ok then
             if res ~= nil then print(table.unpack(res)) end
         else
-            print(table.unpack(res))
+            os.exit(1)
         end
         return "done"
     end
