@@ -14,13 +14,14 @@ No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 ## Compilation
 
 Get `lapp` sources on GitHub: <https://github.com/CDSoft/lapp>, download
-submodules and run `make`:
+dependencies and submodules and run `make`:
 
 ```sh
 $ git clone https://github.com/CDSoft/lapp
 $ cd lapp
-$ git submodule sync && git submodule update --init --recursive
-$ make
+$ sudo make dep         # install make, gcc, readline, ...
+$ make submodules       # retreive submodules (luasocket, lz4, ...)
+$ make                  # compile and test
 ```
 
 ## Installation

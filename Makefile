@@ -175,6 +175,22 @@ green = /bin/echo -e "\x1b[32m[$1]\x1b[0m $2"
 blue = /bin/echo -e "\x1b[34m[$1]\x1b[0m $2"
 cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
+ifneq ($(shell which apt 2>/dev/null),)
+dep:
+	apt install make gcc libreadline-dev
+else
+ifneq ($(shell which dnf 2>/dev/null),)
+dep:
+	dnf install make gcc readline-devel
+else
+dep:
+	echo "apt or dnf not found. Please install 'make', 'gcc' and 'libreadline-dev' (or equivalent on your OS)."
+endif
+endif
+
+submodules:
+	git submodule sync && git submodule update --init --recursive
+
 linux: $(LAPP) $(LUAX) $(LAPP_TAR)
 
 ifeq ($(HAS_MINGW),1)
