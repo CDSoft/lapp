@@ -442,7 +442,7 @@ endef
 ifeq ($(HAS_MINGW),1)
 
 $(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))  # Fedora 35
-$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/i686-w64-mingw32/10-posix/libssp-0.dll))      # Ubuntu 21.10
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libssp-0.dll))      # Ubuntu 21.10
 
 ifeq ($(MINGW_LIBSSP_DLL),)
 $(error libssp-0.dll not found)
