@@ -177,11 +177,11 @@ cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
 ifneq ($(shell which apt 2>/dev/null),)
 dep:
-	apt install make gcc libreadline-dev
+	apt install make gcc libreadline-dev wget
 else
 ifneq ($(shell which dnf 2>/dev/null),)
 dep:
-	dnf install make gcc readline-devel
+	dnf install make gcc readline-devel wget hostname diffutils
 else
 dep:
 	echo "apt or dnf not found. Please install 'make', 'gcc' and 'libreadline-dev' (or equivalent on your OS)."
