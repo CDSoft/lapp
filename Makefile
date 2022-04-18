@@ -279,7 +279,7 @@ compile_flags.txt: Makefile
 
 # current git version based on the last tag
 
-$(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) .git/index
+$(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) $(wildcard .git/index)
 	@$(call cyan,"GEN",$@)
 	@mkdir -p $(dir $@)
 	@(  echo "#pragma once";                                    \
