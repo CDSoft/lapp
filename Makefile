@@ -209,6 +209,7 @@ install: $(LAPP) $(LUAX)
 	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
 	install -T $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
 
+test: $(BUILD)/test/ok.bytecode.lc
 test: $(BUILD)/test/ok.host_linux_target_linux
 
 ifeq ($(HAS_MINGW)$(HAS_WINE),11)
@@ -228,6 +229,11 @@ $(BUILD)/test/ok.%: test/expected_result.txt $(BUILD)/test/res.%
 
 # Test executables
 
+$(BUILD)/test/bin.bytecode.lc: $(LAPP) $(TEST_SOURCES)
+	@$(call cyan,"LAPP",$@)
+	@mkdir -p $(dir $@)
+	$(LAPP) $(TEST_SOURCES) -o $@
+
 $(BUILD)/test/bin.host_linux_target_%: $(LAPP) $(TEST_SOURCES)
 	@$(call cyan,"LAPP",$@)
 	@mkdir -p $(dir $@)
@@ -243,6 +249,10 @@ $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES) $(TEST_LIBSSP_DLL)
 
 diff: $(BUILD)/test/res.host_linux_target_linux test/expected_result.txt
 	@meld $^
+
+$(BUILD)/test/res.bytecode.lc: $(LRUN) $(BUILD)/test/bin.bytecode.lc
+	@$(call cyan,"TEST",$@)
+	$^ Lua is great; echo $$? > $@
 
 $(BUILD)/test/res.host_%_target_linux: $(BUILD)/test/bin.host_%_target_linux
 	@$(call cyan,"TEST",$@)
@@ -448,12 +458,12 @@ endif
 
 # Binary archives
 
-$(LAPP_TAR): README.md $(LAPP) $(LUAX)
+$(LAPP_TAR): README.md $(LAPP) $(LUAX) $(LRUN)
 	tar -czf $@ \
 		-C $(dir $(word 1,$^)) $(notdir $(word 1,$^)) \
-		-C $(dir $(word 2,$^)) $(notdir $(wordlist 2,3,$^))
+		-C $(dir $(word 2,$^)) $(notdir $(wordlist 2,4,$^))
 
-$(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
+$(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LRUNW) $(LIBSSP_DLL)
 	zip -j $@ $^
 
 # Dependencies

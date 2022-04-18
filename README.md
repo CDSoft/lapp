@@ -27,11 +27,11 @@ $ make                  # compile and test
 ## Installation
 
 ``` sh
-$ make install    # install lapp and luax to ~/.local/bin or ~/bin
+$ make install    # install lapp, lrun and luax to ~/.local/bin or ~/bin
 $ make install PREFIX=/usr/bin  # install lapp and luax to /usr/bin
 ```
 
-`lapp` and `luax` are single autonomous executables.
+`lapp`, `lrun` and `luax` are single autonomous executables.
 They do not need to be installed and can be copied anywhere you want.
 
 `make install` only install Linux binaries and is not meant to be used on Windows.
@@ -57,8 +57,11 @@ Options:
 The main script shall be the first one.
 Other scripts are libraries that can be loaded by the main script.
 
-If `OUTPUT` ends with `.exe` then `lapp` produces a Windows binary.
-Otherwise the output is assumed to be a Linux executable.
+The name of `OUTPUT` defines the target platform:
+
+- `OUTPUT.exe` produces a Windows binary
+- `OUTPUT.lc` produces a portable bytecode (to be run with `lrun OUTPUT.lc`
+- `OUTPUT` produces a Linux executable
 
 ## Examples
 
@@ -66,12 +69,16 @@ Otherwise the output is assumed to be a Linux executable.
 | ------- | ----------- | ------------------------------------------------------------------ |
 | Linux   | Linux       | `lapp main.lua lib1.lua lib2.lua -o linux_executable`              |
 | Linux   | Windows     | `lapp main.lua lib1.lua lib2.lua -o windows_executable.exe`        |
+| Linux   | Bytecode    | `lapp main.lua lib1.lua lib2.lua -o bytecode.lc`                   |
 | Windows | Linux       | `lapp.exe main.lua lib1.lua lib2.lua -o linux_executable`          |
 | Windows | Windows     | `lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe`    |
+| Windows | Bytecode    | `lapp.exe main.lua lib1.lua lib2.lua -o bytecode.lc`               |
 
 Running `linux_executable` is equivalent to running `luax main.lua`.
 
 Running `windows_executable.exe` is equivalent to running `luax.exe main.lua`.
+
+Running `lrun bytecode.lc` is equivalent to running `luax.exe main.lua`.
 
 ## Dependencies
 

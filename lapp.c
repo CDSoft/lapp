@@ -304,9 +304,9 @@ int main(int argc, const char *argv[])
         printf("\n");
         printf("%s:\n", output);
 
-        const unsigned char *lrun;
-        size_t lrun_size;
-        const char *target;
+        const unsigned char *lrun = NULL;
+        size_t lrun_size = 0;
+        const char *target = "Unknown target";
 
         if (strncasecmp(ext(output), ".exe", 4) == 0)
         {
@@ -317,6 +317,12 @@ int main(int argc, const char *argv[])
 #else
             error(argv[0], "Windows target not supported");
 #endif
+        }
+        else if (strncasecmp(ext(output), ".lc", 3) == 0)
+        {
+            lrun = NULL;
+            lrun_size = 0;
+            target = "Bytecode";
         }
         else
         {
@@ -340,7 +346,7 @@ int main(int argc, const char *argv[])
             .compressed_size = main_chunk.compressed_size,
         };
         FILE *f = fopen(output, "wb");
-        fwrite(lrun, sizeof(lrun[0]), lrun_size, f);
+        if (lrun_size > 0) fwrite(lrun, sizeof(lrun[0]), lrun_size, f);
         fwrite(main_chunk.compressed_chunk, sizeof(main_chunk.chunk[0]), main_chunk.compressed_size, f);
         fwrite(&header, sizeof(header), 1, f);
         fclose(f);

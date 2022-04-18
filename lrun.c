@@ -58,13 +58,13 @@ static const luaL_Reg lrun_libs[] = {
     {NULL, NULL},
 };
 
-static void createargtable(lua_State *L, const char **argv, int argc)
+static void createargtable(lua_State *L, const char **argv, int argc, int shift)
 {
     int i, narg;
-    narg = argc - 1;  /* number of positive indices */
+    narg = argc - 1 - shift;  /* number of positive indices */
     lua_createtable(L, narg, 1);
-    for (i = 0; i < argc; i++) {
-        lua_pushstring(L, argv[i]);
+    for (i = 0; i < argc-shift; i++) {
+        lua_pushstring(L, argv[i+shift]);
         lua_rawseti(L, -2, i);
     }
     lua_setglobal(L, "arg");
@@ -100,13 +100,45 @@ int main(int argc, const char *argv[])
     if (f == NULL) perror(exe);
 
     t_header header;
+    char *compressed_chunk = NULL;
+    int shift_args = 0;
     fseek(f, -(long)sizeof(header), SEEK_END);
     if (fread(&header, sizeof(header), 1, f) != 1) perror(argv[0]);
-    if (memcmp(header.magic, LAPP_SIGNATURE, sizeof(header.magic)) != 0) error(argv[0], "Lua application not found");
-    fseek(f, -(long)(header.compressed_size + sizeof(header)), SEEK_END);
-    char *compressed_chunk = safe_malloc(header.compressed_size);
-    if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) perror(argv[0]);
-    fclose(f);
+    if (memcmp(header.magic, LAPP_SIGNATURE, sizeof(header.magic)) != 0)
+    {
+        /* The runtime does not contain any precompiled application */
+        /* argv[1] may be a precompiled chunk */
+        fclose(f);
+        if (argc >= 2)
+        {
+            f = fopen(argv[1], "rb");
+            if (f == NULL) perror(exe);
+            fseek(f, -(long)sizeof(header), SEEK_END);
+            if (fread(&header, sizeof(header), 1, f) != 1) perror(argv[1]);
+            if (memcmp(header.magic, LAPP_SIGNATURE, sizeof(header.magic)) != 0)
+            {
+                error(argv[1], "Wrong bytecode version");
+            }
+            /* Read the precompiled application */
+            fseek(f, -(long)(header.compressed_size + sizeof(header)), SEEK_END);
+            compressed_chunk = safe_malloc(header.compressed_size);
+            if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) perror(argv[0]);
+            shift_args++;
+            fclose(f);
+        }
+        else
+        {
+            error(argv[0], "Lua application not found");
+        }
+    }
+    else
+    {
+        /* Read the precompiled application from the runtime */
+        fseek(f, -(long)(header.compressed_size + sizeof(header)), SEEK_END);
+        compressed_chunk = safe_malloc(header.compressed_size);
+        if (fread(compressed_chunk, header.compressed_size, 1, f) != 1) perror(argv[0]);
+        fclose(f);
+    }
 
     char *chunk = safe_malloc(header.uncompressed_size);
     const int uncompressed_size = LZ4_decompress_safe(
@@ -127,7 +159,7 @@ int main(int argc, const char *argv[])
     /* Lua interpretor */
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
-    createargtable(L, argv, argc);
+    createargtable(L, argv, argc, shift_args); // TODO : décaler agrv si blob externe
 
     /* standard libraries */
     for (const luaL_Reg *lib = lrun_libs; lib->func != NULL; lib++)
