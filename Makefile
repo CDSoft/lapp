@@ -142,8 +142,8 @@ MACHINE := $(shell uname -m)
 
 CC_OPT += -DKERNEL=$(KERNEL) -DMACHINE=$(MACHINE)
 
-LAPP_TAR = $(BUILD)/linux/lapp-$(shell echo $(KERNEL) | tr A-Z a-z)-$(MACHINE).tar.gz
-LAPP_ZIP = $(BUILD)/win/lapp-win-$(MACHINE).zip
+LAPP_TAR = $(BUILD)/linux/lapp-$(shell . /etc/os-release; echo "$$(git describe --tags)-$$ID-$$VERSION_ID")-$(MACHINE).tar.gz
+LAPP_ZIP = $(BUILD)/win/lapp-$(shell git describe --tags)-win-$(MACHINE).zip
 
 ifeq ($(shell which $(MINGW_CC) 2>/dev/null),)
 HAS_MINGW = 0
