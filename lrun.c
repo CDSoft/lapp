@@ -159,7 +159,7 @@ int main(int argc, const char *argv[])
     /* Lua interpretor */
     lua_State *L = luaL_newstate();
     luaL_openlibs(L);
-    createargtable(L, argv, argc, shift_args); // TODO : décaler agrv si blob externe
+    createargtable(L, argv, argc, shift_args);
 
     /* standard libraries */
     for (const luaL_Reg *lib = lrun_libs; lib->func != NULL; lib++)

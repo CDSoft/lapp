@@ -5,7 +5,8 @@ produces a standalone executable for Linux and Windows.
 
 `lapp` runs on Linux and `lapp.exe` on Windows.
 
-`lapp` and `lapp.exe` can produce both Linux and Windows binaries.
+`lapp` can produce both Linux and Windows binaries.
+`lapp.exe` can produce Windows binaries only.
 
 No Lua interpretor needs to be installed. `lapp` contains its own interpretor.
 
@@ -70,7 +71,7 @@ The name of `OUTPUT` defines the target platform:
 | Linux   | Linux       | `lapp main.lua lib1.lua lib2.lua -o linux_executable`              |
 | Linux   | Windows     | `lapp main.lua lib1.lua lib2.lua -o windows_executable.exe`        |
 | Linux   | Bytecode    | `lapp main.lua lib1.lua lib2.lua -o bytecode.lc`                   |
-| Windows | Linux       | `lapp.exe main.lua lib1.lua lib2.lua -o linux_executable`          |
+| Windows | Linux       | Not available (too many Linux distributions)                       |
 | Windows | Windows     | `lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe`    |
 | Windows | Bytecode    | `lapp.exe main.lua lib1.lua lib2.lua -o bytecode.lc`               |
 
@@ -78,7 +79,7 @@ Running `linux_executable` is equivalent to running `luax main.lua`.
 
 Running `windows_executable.exe` is equivalent to running `luax.exe main.lua`.
 
-Running `lrun bytecode.lc` is equivalent to running `luax.exe main.lua`.
+Running `lrun bytecode.lc` is equivalent to running `luax main.lua` or `luax.exe main.lua`.
 
 ## Dependencies
 

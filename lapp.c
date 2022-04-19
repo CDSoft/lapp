@@ -54,7 +54,9 @@ static const char *usage =
     "usage: lapp <main Lua script> [Lua libraries] -o <executable name>\n"
     "\n"
     "supported targets:\n"
+#ifndef __MINGW32__
     "    " TOSTRING(KERNEL) "\t" TOSTRING(MACHINE) "\n"
+#endif
 #if HAS_MINGW
     "    " "Windows" "\t" TOSTRING(MACHINE) "\n"
 #endif
@@ -73,9 +75,12 @@ static const lapp_Lib lapp_libs[] = {
     NULL,
 };
 
+#if !defined(__MINGW32__)
 extern const unsigned char lrun_linux[];
 extern const unsigned int lrun_linux_size;
-#if HAS_MINGW
+#endif
+
+#if defined(__MINGW32__) || HAS_MINGW
 extern const unsigned char lrun_win[];
 extern const unsigned int lrun_win_size;
 #endif
@@ -310,7 +315,7 @@ int main(int argc, const char *argv[])
 
         if (strncasecmp(ext(output), ".exe", 4) == 0)
         {
-#if HAS_MINGW
+#if defined(__MINGW32__) || HAS_MINGW
             lrun = lrun_win;
             lrun_size = lrun_win_size;
             target = "Windows";
@@ -326,9 +331,13 @@ int main(int argc, const char *argv[])
         }
         else
         {
+#if !defined(__MINGW32__)
             lrun = lrun_linux;
             lrun_size = lrun_linux_size;
             target = "Linux";
+#else
+            error(argv[0], "Linux target not supported");
+#endif
         }
 
         printf("    Target          : %s %s\n", target, TOSTRING(MACHINE));
