@@ -83,6 +83,7 @@ STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 CC_OPT = -O3 -flto -s
 CC_OPT += -std=gnu99
 CC_OPT += -ffunction-sections -fdata-sections -Wl,-gc-sections
+ifneq ($(CHECKS),OFF)
 CC_OPT += -Wall -Wextra -pedantic -Werror
 CC_OPT += -Wstrict-prototypes
 CC_OPT += -Wmissing-field-initializers
@@ -91,10 +92,14 @@ CC_OPT += -Wmissing-declarations
 CC_OPT += -Werror=switch-enum
 CC_OPT += -Werror=implicit-fallthrough
 CC_OPT += -Werror=missing-prototypes
+endif
 
 MINGW_OPT = $(CC_OPT)
+ifneq ($(CHECKS),OFF)
 MINGW_OPT += -Wno-error=attributes
+endif
 
+ifneq ($(CHECKS),OFF)
 $(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpcode.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
@@ -105,6 +110,7 @@ $(BUILD)/linux/lrun: CC_OPT += -Wno-error=maybe-uninitialized
 $(BUILD)/win/external/luasocket/src/serial.o: MINGW_OPT += -Wno-error=missing-prototypes
 $(BUILD)/win/external/luasocket/src/options.o: MINGW_OPT += -Wno-error=implicit-function-declaration
 $(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-attributes
+endif
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
@@ -214,9 +220,7 @@ test: $(BUILD)/test/ok.host_linux_target_linux
 
 ifeq ($(HAS_MINGW)$(HAS_WINE),11)
 test: $(BUILD)/test/ok.host_linux_target_win.exe
-test: $(BUILD)/test/ok.host_win_target_linux
 test: $(BUILD)/test/ok.host_win_target_win.exe
-test: $(BUILD)/test/same.linux_native_and_cross
 test: $(BUILD)/test/same.win.exe_native_and_cross
 endif
 
