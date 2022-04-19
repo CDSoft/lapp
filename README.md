@@ -40,11 +40,7 @@ They do not need to be installed and can be copied anywhere you want.
 ## Precompiled binaries
 
 It is usually highly recommended to build `lapp` from sources.
-Precompiled binaries of the latest version are available here:
-
-- Linux: [lapp-linux-x86_64.tar.gz](http://cdelord.fr/lapp/lapp-linux-x86_64.tar.gz)
-- Raspberry Pi: [lapp-linux-aarch64.tar.gz](http://cdelord.fr/lapp/lapp-linux-aarch64.tar.gz)
-- Windows: [lapp-win-x86_64.zip](http://cdelord.fr/lapp/lapp-win-x86_64.zip)
+Some precompiled binaries are available here: [lapp release](http://cdelord.fr/lapp/release.html).
 
 ## Usage
 
