@@ -51,19 +51,6 @@
 #define FS_PATHSIZE 1024
 #define FS_BUFSIZE  (64*1024)
 
-extern const unsigned char fsx_chunk[];
-extern const unsigned int fsx_chunk_size;
-
-static const struct lrun_Reg fs_scripts[] = {
-    {"fsx", fsx_chunk, &fsx_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *fs_libs(void)
-{
-    return fs_scripts;
-}
-
 static int fs_getcwd(lua_State *L)
 {
     char path[FS_PATHSIZE+1];

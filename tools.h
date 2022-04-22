@@ -32,7 +32,7 @@ struct lrun_Reg
     bool autoload;
 };
 
-typedef const struct lrun_Reg * (*lapp_Lib)(void);
+typedef const struct lrun_Reg *lapp_Lib;
 
 void error(const char *what, const char *message);
 

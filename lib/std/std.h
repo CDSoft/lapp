@@ -23,6 +23,3 @@
 
 /* C module registration function */
 LUAMOD_API int luaopen_std(lua_State *L);
-
-/* Lua scripts list */
-const struct lrun_Reg *std_libs(void);

@@ -23,6 +23,3 @@
 
 /* C module registration function */
 LUAMOD_API int luaopen_lpeg(lua_State *L); /* defined in lptree.c */
-
-/* Lua scripts list */
-const struct lrun_Reg *lpeg_libs(void);

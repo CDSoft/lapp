@@ -33,19 +33,6 @@
 #include <wincrypt.h>
 #endif
 
-extern const unsigned char cryptx_chunk[];
-extern const unsigned int cryptx_chunk_size;
-
-static const struct lrun_Reg crypt_scripts[] = {
-    {"cryptx", cryptx_chunk, &cryptx_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *crypt_libs(void)
-{
-    return crypt_scripts;
-}
-
 #ifdef __MINGW32__
 static HCRYPTPROV hProv = 0;
 #endif

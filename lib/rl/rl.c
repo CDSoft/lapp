@@ -25,14 +25,6 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-static const struct lrun_Reg rl_scripts[] = {
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *rl_libs(void)
-{
-    return rl_scripts;
-}
 #ifdef __MINGW32__
 
 /* no readline package for Windows */

@@ -51,19 +51,6 @@
 #define SYS_PATHSIZE 1024
 #define SYS_BUFSIZE  (64*1024)
 
-extern const unsigned char sysx_chunk[];
-extern const unsigned int sysx_chunk_size;
-
-static const struct lrun_Reg sys_scripts[] = {
-    {"sysx", sysx_chunk, &sysx_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *sys_libs(void)
-{
-    return sys_scripts;
-}
-
 static int sys_hostname(lua_State *L)
 {
     char name[SYS_PATHSIZE+1];

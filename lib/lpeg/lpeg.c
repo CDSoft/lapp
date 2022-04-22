@@ -24,16 +24,3 @@
 #include "lua.h"
 #include "lauxlib.h"
 #include "lualib.h"
-
-extern const unsigned char re_chunk[];
-extern const unsigned int re_chunk_size;
-
-static const struct lrun_Reg lpeg_scripts[] = {
-    {"re", re_chunk, &re_chunk_size, false},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *lpeg_libs(void)
-{
-    return lpeg_scripts;
-}

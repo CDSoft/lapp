@@ -32,15 +32,15 @@
 
 #include "lz4hc.h"
 
-#include "crypt.h"
-#include "fs.h"
-#include "lpeg.h"
-#include "luasocketlib.h"
-#include "lz4lib.h"
-#include "ps.h"
-#include "rl.h"
-#include "std.h"
-#include "sys.h"
+#include "crypt-scripts.h"
+#include "fs-scripts.h"
+#include "lpeg-scripts.h"
+#include "luasocketlib-scripts.h"
+#include "lz4lib-scripts.h"
+#include "ps-scripts.h"
+#include "rl-scripts.h"
+#include "std-scripts.h"
+#include "sys-scripts.h"
 
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
@@ -63,15 +63,15 @@ static const char *usage =
     ;
 
 static const lapp_Lib lapp_libs[] = {
-    std_libs,
-    fs_libs,
-    ps_libs,
-    sys_libs,
-    lz4_libs,
-    lpeg_libs,
-    luasocket_libs,
-    crypt_libs,
-    rl_libs,
+    std_scripts,
+    fs_scripts,
+    ps_scripts,
+    sys_scripts,
+    lz4_scripts,
+    lpeg_scripts,
+    luasocket_scripts,
+    crypt_scripts,
+    rl_scripts,
     NULL,
 };
 
@@ -231,9 +231,9 @@ int main(int argc, const char *argv[])
     /* insert standard library scripts first */
     size_t runtime_script_size = 0;
     printf("Runtime:\n");
-    for (const lapp_Lib *lapp_lib = lapp_libs; *lapp_lib != NULL; lapp_lib++)
+    for (int i = 0; lapp_libs[i] != NULL; i++)
     {
-        const struct lrun_Reg *libs = (*lapp_lib)();
+        lapp_Lib libs = lapp_libs[i];
         for (int j = 0; libs[j].chunk != NULL; j++)
         {
             const struct lrun_Reg *lib = &libs[j];

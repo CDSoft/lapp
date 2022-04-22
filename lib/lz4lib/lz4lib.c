@@ -54,19 +54,6 @@
 // TODO: wrapper en C pour les fonctions de lz4
 // TODO: functions plus haut niveau en lua pour la gestion de fichiers lz4 (frames)
 
-extern const unsigned char lz4x_chunk[];
-extern const unsigned int lz4x_chunk_size;
-
-static const struct lrun_Reg lz4_scripts[] = {
-    {"lz4x", lz4x_chunk, &lz4x_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *lz4_libs(void)
-{
-    return lz4_scripts;
-}
-
 #define LZ4_SIG  0x00345A4C
 
 typedef struct

@@ -17,31 +17,16 @@
  * http://cdelord.fr/lapp
  */
 
-#include "luasocketlib.h"
-
 #include "tools.h"
 
-#include "lua.h"
-#include "lauxlib.h"
-#include "lualib.h"
+extern const unsigned char fun_chunk[];
+extern const unsigned int fun_chunk_size;
 
-#include "external/luasocket/src/luasocket.h"
-#include "external/luasocket/src/mime.h"
-#ifdef __MINGW32__
-#else
-#include "external/luasocket/src/unix.h"
-extern LUASOCKET_API int luaopen_socket_serial(lua_State *L);
-#endif
+extern const unsigned char stringx_chunk[];
+extern const unsigned int stringx_chunk_size;
 
-LUAMOD_API int luaopen_luasocket(lua_State *L)
-{
-    luaL_requiref(L, "socket.core", luaopen_socket_core, 0);
-    luaL_requiref(L, "mime.core", luaopen_mime_core, 0);
-#ifdef __MINGW32__
-#else
-    luaL_requiref(L, "socket.unix", luaopen_socket_unix, 0);
-    luaL_requiref(L, "socket.serial", luaopen_socket_serial, 0);
-#endif
-    lua_pop(L, 1);
-    return 0;
-}
+static const struct lrun_Reg std_scripts[] = {
+    {"fun", fun_chunk, &fun_chunk_size, false},
+    {"stringx", stringx_chunk, &stringx_chunk_size, true},
+    {NULL, NULL, NULL, false},
+};

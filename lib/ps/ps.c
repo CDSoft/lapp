@@ -48,19 +48,6 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-extern const unsigned char psx_chunk[];
-extern const unsigned int psx_chunk_size;
-
-static const struct lrun_Reg ps_scripts[] = {
-    {"psx", psx_chunk, &psx_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *ps_libs(void)
-{
-    return ps_scripts;
-}
-
 static int ps_sleep(lua_State *L)
 {
     double t = luaL_checknumber(L, 1);

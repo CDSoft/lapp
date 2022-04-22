@@ -26,23 +26,6 @@
 #include "lauxlib.h"
 #include "lualib.h"
 
-extern const unsigned char fun_chunk[];
-extern const unsigned int fun_chunk_size;
-
-extern const unsigned char stringx_chunk[];
-extern const unsigned int stringx_chunk_size;
-
-static const struct lrun_Reg std_scripts[] = {
-    {"fun", fun_chunk, &fun_chunk_size, false},
-    {"stringx", stringx_chunk, &stringx_chunk_size, true},
-    {NULL, NULL, NULL, false},
-};
-
-const struct lrun_Reg *std_libs(void)
-{
-    return std_scripts;
-}
-
 LUAMOD_API int luaopen_std(lua_State *L)
 {
     lua_pushglobaltable(L);                 /* push _G */
