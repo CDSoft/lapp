@@ -292,7 +292,7 @@ $(BUILD)/lapp_version.h: $(wildcard .git/refs/tags) $(wildcard .git/index)
 
 # Lua library
 
-$(LUA) $(LUAC) $(LIBLUA) &: $(LUA_ARCHIVE)
+$(LUA) $(LUAC) $(LIBLUA): $(LUA_ARCHIVE)
 	@$(call cyan,"MAKE",$@)
 	@mkdir -p $(BUILD)/linux
 	@tar -xzf $(LUA_ARCHIVE) -C $(BUILD)/linux
@@ -416,7 +416,7 @@ $(BUILD)/%.luao: %.lua
 
 # lpeg
 
-$(LPEG_SOURCES) $(LPEG_SCRIPTS) &: $(CACHE)/$(notdir $(LPEG_URL))
+$(LPEG_SOURCES) $(LPEG_SCRIPTS): $(CACHE)/$(notdir $(LPEG_URL))
 	@$(call cyan,"TAR",$@)
 	@tar -xzf $< -C $(BUILD)
 	@touch $(LPEG_SOURCES) $(LPEG_SCRIPTS)
@@ -445,8 +445,8 @@ endef
 
 ifeq ($(HAS_MINGW),1)
 
-$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))  # Fedora 35
-$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libssp-0.dll))      # Ubuntu 21.10
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))   # Fedora
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libssp-0.dll))      # Ubuntu
 
 ifeq ($(MINGW_LIBSSP_DLL),)
 $(error libssp-0.dll not found)
