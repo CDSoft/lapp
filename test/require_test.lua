@@ -24,7 +24,8 @@ http://cdelord.fr/lapp
 
 return function()
     local lib = require "lib"
-    eq(lib.hello "World":gsub("\t", "    "), [[
+    local traceback = lib.hello "World":gsub("\t", "    ")
+    local expected_traceback = [[
 @test/lib.lua says: Hello World
 Traceback test
 stack traceback:
@@ -33,5 +34,10 @@ stack traceback:
     test/main.lua:26: in main chunk
     (...tail calls...)
     [C]: in function 'require'
-    ?: in main chunk]])
+    ?: in main chunk]]
+    if arg[0]:match "%.lc$" then
+        eq(traceback:sub(1, #expected_traceback), expected_traceback)
+    else
+        eq(traceback, expected_traceback)
+    end
 end

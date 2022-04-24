@@ -254,7 +254,7 @@ $(BUILD)/test/bin.host_win_target_%: $(LAPPW) $(TEST_SOURCES) $(TEST_LIBSSP_DLL)
 diff: $(BUILD)/test/res.host_linux_target_linux test/expected_result.txt
 	@meld $^
 
-$(BUILD)/test/res.bytecode.lc: $(LRUN) $(BUILD)/test/bin.bytecode.lc
+$(BUILD)/test/res.bytecode.lc: $(LUAX) $(BUILD)/test/bin.bytecode.lc
 	@$(call cyan,"TEST",$@)
 	$^ Lua is great; echo $$? > $@
 
@@ -462,12 +462,12 @@ endif
 
 # Binary archives
 
-$(LAPP_TAR): README.md $(LAPP) $(LUAX) $(LRUN)
+$(LAPP_TAR): README.md $(LAPP) $(LUAX)
 	tar -czf $@ \
 		-C $(dir $(word 1,$^)) $(notdir $(word 1,$^)) \
 		-C $(dir $(word 2,$^)) $(notdir $(wordlist 2,4,$^))
 
-$(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LRUNW) $(LIBSSP_DLL)
+$(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
 	zip -j $@ $^
 
 # Dependencies

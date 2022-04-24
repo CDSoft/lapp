@@ -103,6 +103,21 @@ end
 
 -- run script
 
+local function loadbytecode(fname)
+    local f = assert(io.open(fname, "rb"))
+    local bytes = f:read "a"
+    f:close()
+    local chunk_size, header_size, magic_id = string.unpack("=I8I8I8", bytes, #bytes+1-8*3)
+    magic_id = string.unpack("z", string.pack("=I8", ~magic_id))
+    assert(chunk_size+header_size == #bytes and magic_id == "LAPP;-)", fname..": invalid bytecode")
+    local c0
+    local chunk = string.unpack("c"..chunk_size, bytes):gsub(".", function(c)
+        c0 = (c:byte() + (c0 or 0)) % 0x100
+        return string.char(c0)
+    end)
+    return load(chunk, fname)
+end
+
 if #arg >= 1 then
     local luax = arg[0]
     local script = arg[1]
@@ -111,6 +126,8 @@ if #arg >= 1 then
     local chunk, err
     if script == "-" then
         chunk, err = load(io.stdin:read "*a")
+    elseif script:match "%.lc$" then
+        chunk, err = loadbytecode(script)
     else
         chunk, err = loadfile(script)
     end

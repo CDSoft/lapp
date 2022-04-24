@@ -29,32 +29,34 @@
  *  +-----------------------------------+  <--+
  *  | Lua chunk                         |     |
  *  | compiled with luaU_dump           |     |
- *  | compressed with LZ4               |     |
+ *  |                                   |     |
  *  |                                   |     |
  *  |                                   |     |
  *  |                                   |     |
  *  +-----------------------------------+  <--+
  *  | header                            |     |
- *  | .compressed_size: size of the     | ----+
- *  |       Lua chunk in the file       |
- *  | .uncompressed_size: size of the   |
- *  |       Lua chunk after             |
- *  |       decompression               |
- *  | .magic: lapp signature            |
+ *  | .chunk_size: size of the          | ----+
+ *  |       Lua chunk                   |
+ *  | .magic_str: lapp signature        |
+ *  | .header_size: size of this header |
+ *  | .magic_id: lapp magic             |
  *  +-----------------------------------+
  */
 
 #pragma once
 
+#include <stdint.h>
 #include <stdlib.h>
 
 #include "lapp_version.h"
 
+#define LAPP_MAGIC     (~*(uint64_t*)"LAPP;-)")
 #define LAPP_SIGNATURE "\x1b" "Compiled with lapp "LAPP_VERSION" (http://cdelord.fr/lapp)" "\0"
 
 typedef struct __attribute__((packed))
 {
-    size_t compressed_size;
-    size_t uncompressed_size;
-    char magic[sizeof(LAPP_SIGNATURE)-1];
+    char magic_str[sizeof(LAPP_SIGNATURE)-1];
+    size_t chunk_size;
+    size_t header_size;
+    uint64_t magic_id;
 } t_header;

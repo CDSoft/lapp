@@ -28,6 +28,7 @@
 
 #include "header.h"
 #include "lapp_version.h"
+#include "lz4lib.h"
 #include "tools.h"
 
 #include "lz4hc.h"
@@ -93,8 +94,6 @@ typedef struct
     char *chunk;
     size_t size;
     size_t allocated;
-    char *compressed_chunk;
-    size_t compressed_size;
 } t_chunk;
 
 static const t_chunk empty_chunk =
@@ -105,8 +104,6 @@ static const t_chunk empty_chunk =
     .chunk = NULL,
     .size = 0,
     .allocated = 0,
-    .compressed_chunk = NULL,
-    .compressed_size = 0,
 };
 
 typedef struct
@@ -185,23 +182,12 @@ static void compile_string(t_chunk *chunk, int strip)
     printf("    compiled chunk  : %6zu bytes\n", chunk->size);
 }
 
-static void compress_chunk(t_chunk *chunk)
+static void encode_chunk(t_chunk *chunk)
 {
     for (size_t i = chunk->size; i > 0; i--)
     {
         chunk->chunk[i] -= chunk->chunk[i-1];
     }
-    const int max_size = LZ4_compressBound((int)chunk->size);
-    chunk->compressed_chunk = safe_malloc((size_t)max_size);
-    const int compressed_size = LZ4_compress_HC(
-            chunk->chunk,
-            chunk->compressed_chunk,
-            (int)chunk->size,
-            max_size,
-            LZ4HC_CLEVEL_MAX);
-    if (compressed_size < 0) error(chunk->script_name, "Can not compress Lua chunk");
-    chunk->compressed_size = (size_t)compressed_size;
-    printf("    compressed chunk: %6zu bytes\n", chunk->compressed_size);
 }
 
 static void chunk_free(t_chunk *chunk)
@@ -209,7 +195,6 @@ static void chunk_free(t_chunk *chunk)
     if (chunk->script_name != NULL) free(chunk->script_name);
     if (chunk->lib_name != NULL) free(chunk->lib_name);
     if (chunk->chunk != NULL) free(chunk->chunk);
-    if (chunk->compressed_chunk != NULL) free(chunk->compressed_chunk);
 }
 
 int main(int argc, const char *argv[])
@@ -221,6 +206,62 @@ int main(int argc, const char *argv[])
     const char *output = NULL;
     char *main_name = NULL;
 
+    size_t nb_scripts = 0;
+    size_t max_scripts = 0;
+    const char **scripts = NULL;
+
+    const unsigned char *lrun = NULL;
+    size_t lrun_size = 0;
+    bool add_std_lib = true;
+    const char *target = "Unknown target";
+
+    for (int i = 1; i < argc; i++)
+    {
+        if (strcmp(argv[i], "-o") == 0)
+        {
+            if (i >= argc-1) error(NULL, usage);
+            output = argv[++i];
+            if (strncasecmp(ext(output), ".exe", 4) == 0)
+            {
+#if defined(__MINGW32__) || HAS_MINGW
+                lrun = lrun_win;
+                lrun_size = lrun_win_size;
+                target = "Windows";
+                add_std_lib = true;
+#else
+                error(argv[0], "Windows target not supported");
+#endif
+            }
+            else if (strncasecmp(ext(output), ".lc", 3) == 0)
+            {
+                lrun = NULL;
+                lrun_size = 0;
+                target = "Bytecode";
+                add_std_lib = false;
+            }
+            else
+            {
+#if !defined(__MINGW32__)
+                lrun = lrun_linux;
+                lrun_size = lrun_linux_size;
+                target = "Linux";
+                add_std_lib = true;
+#else
+                error(argv[0], "Linux target not supported");
+#endif
+            }
+            continue;
+        }
+
+        nb_scripts++;
+        if (nb_scripts > max_scripts)
+        {
+            max_scripts = 2 * nb_scripts;
+            scripts = safe_realloc(scripts, max_scripts*sizeof(const char *));
+        }
+        scripts[nb_scripts-1] = argv[i];
+    }
+
     t_buffer b;
     buffer_init(&b);
 
@@ -229,49 +270,45 @@ int main(int argc, const char *argv[])
 
     buffer_cat(&b, "local libs = {\n");
     /* insert standard library scripts first */
-    size_t runtime_script_size = 0;
-    printf("Runtime:\n");
-    for (int i = 0; lapp_libs[i] != NULL; i++)
+    if (add_std_lib)
     {
-        lapp_Lib libs = lapp_libs[i];
-        for (int j = 0; libs[j].chunk != NULL; j++)
+        size_t runtime_script_size = 0;
+        printf("Runtime:\n");
+        for (int i = 0; lapp_libs[i] != NULL; i++)
         {
-            const struct lrun_Reg *lib = &libs[j];
-            buffer_cat(&b, lib->name);
-            buffer_cat(&b, " = \"");
-            for (unsigned int k = 0; k < *lib->size; k++)
+            lapp_Lib libs = lapp_libs[i];
+            for (int j = 0; libs[j].chunk != NULL; j++)
             {
-                char c[5];
-                sprintf(c, "\\x%02X", lib->chunk[k]);
-                buffer_cat(&b, c);
-            }
-            buffer_cat(&b, "\",\n");
-            runtime_script_size += *lib->size;
-            if (lib->autoload)
-            {
-                buffer_cat(&autoload, "require \"");
-                buffer_cat(&autoload, lib->name);
-                buffer_cat(&autoload, "\"\n");
+                const struct lrun_Reg *lib = &libs[j];
+                buffer_cat(&b, lib->name);
+                buffer_cat(&b, " = \"");
+                for (unsigned int k = 0; k < *lib->size; k++)
+                {
+                    char c[5];
+                    sprintf(c, "\\x%02X", lib->chunk[k]);
+                    buffer_cat(&b, c);
+                }
+                buffer_cat(&b, "\",\n");
+                runtime_script_size += *lib->size;
+                if (lib->autoload)
+                {
+                    buffer_cat(&autoload, "require \"");
+                    buffer_cat(&autoload, lib->name);
+                    buffer_cat(&autoload, "\"\n");
+                }
             }
         }
+        printf("    builtin chunk   : %6zu bytes\n", runtime_script_size);
+        printf("\n");
     }
-    printf("    builtin chunk   : %6zu bytes\n", runtime_script_size);
-    printf("\n");
 
     /* then scripts from the command line */
-    for (int i = 1; i < argc; i++)
+    for (size_t i = 0; i < nb_scripts; i++)
     {
-        if (strcmp(argv[i], "-o") == 0)
-        {
-            if (i >= argc-1) error(NULL, usage);
-            output = argv[++i];
-            continue;
-        }
-
-        printf("%s:\n", argv[i]);
+        printf("%s:\n", scripts[i]);
 
         t_chunk chunk = empty_chunk;
-        chunk.script_name = safe_strdup(argv[i]);
+        chunk.script_name = safe_strdup(scripts[i]);
         chunk.lib_name = safe_strdup(basename(chunk.script_name));
         strip_ext(chunk.lib_name);
         chunk.source = NULL;
@@ -309,60 +346,30 @@ int main(int argc, const char *argv[])
         printf("\n");
         printf("%s:\n", output);
 
-        const unsigned char *lrun = NULL;
-        size_t lrun_size = 0;
-        const char *target = "Unknown target";
-
-        if (strncasecmp(ext(output), ".exe", 4) == 0)
-        {
-#if defined(__MINGW32__) || HAS_MINGW
-            lrun = lrun_win;
-            lrun_size = lrun_win_size;
-            target = "Windows";
-#else
-            error(argv[0], "Windows target not supported");
-#endif
-        }
-        else if (strncasecmp(ext(output), ".lc", 3) == 0)
-        {
-            lrun = NULL;
-            lrun_size = 0;
-            target = "Bytecode";
-        }
-        else
-        {
-#if !defined(__MINGW32__)
-            lrun = lrun_linux;
-            lrun_size = lrun_linux_size;
-            target = "Linux";
-#else
-            error(argv[0], "Linux target not supported");
-#endif
-        }
-
         printf("    Target          : %s %s\n", target, TOSTRING(MACHINE));
 
         t_chunk main_chunk = empty_chunk;
         main_chunk.source = b.data;
         main_chunk.size = 0;
         compile_string(&main_chunk, 1);
-        compress_chunk(&main_chunk);
+        encode_chunk(&main_chunk);
 
         const t_header header =
         {
-            .magic = LAPP_SIGNATURE,
-            .uncompressed_size = main_chunk.size,
-            .compressed_size = main_chunk.compressed_size,
+            .magic_id = LAPP_MAGIC,
+            .header_size = sizeof(t_header),
+            .magic_str = LAPP_SIGNATURE,
+            .chunk_size = main_chunk.size,
         };
         FILE *f = fopen(output, "wb");
         if (lrun_size > 0) fwrite(lrun, sizeof(lrun[0]), lrun_size, f);
-        fwrite(main_chunk.compressed_chunk, sizeof(main_chunk.chunk[0]), main_chunk.compressed_size, f);
+        fwrite(main_chunk.chunk, sizeof(main_chunk.chunk[0]), main_chunk.size, f);
         fwrite(&header, sizeof(header), 1, f);
         fclose(f);
         chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
         printf("    Header          : %6zu bytes\n", sizeof(header));
         printf("    Lua runtime     : %6zu bytes\n", lrun_size);
-        printf("    Total size      : %6zu bytes\n", lrun_size + main_chunk.compressed_size + sizeof(header));
+        printf("    Total size      : %6zu bytes\n", lrun_size + main_chunk.size + sizeof(header));
 
         chunk_free(&main_chunk);
     }

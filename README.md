@@ -28,11 +28,11 @@ $ make                  # compile and test
 ## Installation
 
 ``` sh
-$ make install    # install lapp, lrun and luax to ~/.local/bin or ~/bin
+$ make install    # install lapp and luax to ~/.local/bin or ~/bin
 $ make install PREFIX=/usr/bin  # install lapp and luax to /usr/bin
 ```
 
-`lapp`, `lrun` and `luax` are single autonomous executables.
+`lapp` and `luax` are single autonomous executables.
 They do not need to be installed and can be copied anywhere you want.
 
 `make install` only install Linux binaries and is not meant to be used on Windows.
@@ -57,7 +57,7 @@ Other scripts are libraries that can be loaded by the main script.
 The name of `OUTPUT` defines the target platform:
 
 - `OUTPUT.exe` produces a Windows binary
-- `OUTPUT.lc` produces a portable bytecode (to be run with `lrun OUTPUT.lc`
+- `OUTPUT.lc` produces a portable bytecode (to be run with `luax OUTPUT.lc`
 - `OUTPUT` produces a Linux executable
 
 ## Examples
@@ -75,7 +75,7 @@ Running `linux_executable` is equivalent to running `luax main.lua`.
 
 Running `windows_executable.exe` is equivalent to running `luax.exe main.lua`.
 
-Running `lrun bytecode.lc` is equivalent to running `luax main.lua` or `luax.exe main.lua`.
+Running `luax bytecode.lc` is equivalent to running `luax main.lua` or `luax.exe main.lua`.
 
 ## Dependencies
 
