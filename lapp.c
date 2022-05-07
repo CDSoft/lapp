@@ -366,7 +366,10 @@ int main(int argc, const char *argv[])
         fwrite(main_chunk.chunk, sizeof(main_chunk.chunk[0]), main_chunk.size, f);
         fwrite(&header, sizeof(header), 1, f);
         fclose(f);
-        chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+        if (lrun_size > 0)
+        {
+            chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
+        }
         printf("    Header          : %6zu bytes\n", sizeof(header));
         printf("    Lua runtime     : %6zu bytes\n", lrun_size);
         printf("    Total size      : %6zu bytes\n", lrun_size + main_chunk.size + sizeof(header));
