@@ -4,3 +4,6 @@
 [submodule "external/luasocket"]
 	path = external/luasocket
 	url = https://github.com/lunarmodules/luasocket
+[submodule "external/dockgen"]
+	path = external/dockgen
+	url = https://github.com/CDSoft/dockgen

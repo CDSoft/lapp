@@ -165,7 +165,7 @@ else
 HAS_WINE = 1
 endif
 
-.PHONY: all test diff linux windows install install_linux install_windows
+.PHONY: all test diff linux windows install install_linux install_windows release
 
 .SECONDARY:
 
@@ -202,6 +202,9 @@ linux: $(LAPP) $(LUAX) $(LAPP_TAR)
 ifeq ($(HAS_MINGW),1)
 windows: $(LAPPW) $(LUAXW) $(LIBSSP_DLL) $(LAPP_ZIP)
 endif
+
+release:
+	./release.sh
 
 clean:
 	rm -rf $(BUILD)
@@ -446,7 +449,8 @@ endef
 ifeq ($(HAS_MINGW),1)
 
 $(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/sys-root/mingw/bin/libssp-0.dll))   # Fedora
-$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libssp-0.dll))      # Ubuntu
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/lib/gcc/x86_64-w64-mingw32/*-posix/libssp-0.dll))      # Debian/Ubuntu
+$(eval $(call defvar, MINGW_LIBSSP_DLL, /usr/x86_64-w64-mingw32/bin/libssp-0.dll))                  # Archlinux
 
 ifeq ($(MINGW_LIBSSP_DLL),)
 $(error libssp-0.dll not found)
@@ -472,4 +476,6 @@ $(LAPP_ZIP): README.md $(LAPPW) $(LUAXW) $(LIBSSP_DLL)
 
 # Dependencies
 
--include $(shell find $(BUILD) -name "*.d" 2>/dev/null)
+-include $(BUILD)/*.d
+-include $(shell find $(BUILD)/linux -name "*.d" 2>/dev/null)
+-include $(shell find $(BUILD)/win -name "*.d" 2>/dev/null)
