@@ -166,7 +166,7 @@ do
 
 done
 
-for version in 0.6.4
+for version in 0.6.4 0.6.5
 do
 
     index "## lapp $version"

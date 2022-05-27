@@ -167,7 +167,6 @@ static void compile_file(t_chunk *chunk, int strip)
     luaU_dump(L, f, writer, chunk, strip);
     lua_unlock(L);
     lua_close(L);
-    printf("    compiled chunk  : %6zu bytes\n", chunk->size);
 }
 
 static void compile_string(t_chunk *chunk, int strip)
@@ -179,7 +178,6 @@ static void compile_string(t_chunk *chunk, int strip)
     luaU_dump(L, f, writer, chunk, strip);
     lua_unlock(L);
     lua_close(L);
-    printf("    compiled chunk  : %6zu bytes\n", chunk->size);
 }
 
 static void encode_chunk(t_chunk *chunk)
@@ -195,6 +193,18 @@ static void chunk_free(t_chunk *chunk)
     if (chunk->script_name != NULL) free(chunk->script_name);
     if (chunk->lib_name != NULL) free(chunk->lib_name);
     if (chunk->chunk != NULL) free(chunk->chunk);
+}
+
+static size_t max(size_t a, size_t b)
+{
+    return a > b ? a : b;
+}
+
+static void log_chunk_size(size_t w, const char *name, size_t size)
+{
+    char fmt[64];
+    sprintf(fmt, "%%-%zus: %%7zu bytes\n", w);
+    printf(fmt, name, size);
 }
 
 int main(int argc, const char *argv[])
@@ -214,6 +224,8 @@ int main(int argc, const char *argv[])
     size_t lrun_size = 0;
     bool add_std_lib = true;
     const char *target = "Unknown target";
+
+    size_t w = 16;
 
     for (int i = 1; i < argc; i++)
     {
@@ -260,6 +272,7 @@ int main(int argc, const char *argv[])
             scripts = safe_realloc(scripts, max_scripts*sizeof(const char *));
         }
         scripts[nb_scripts-1] = argv[i];
+        w = max(w, strlen(argv[i])+1);
     }
 
     t_buffer b;
@@ -273,7 +286,6 @@ int main(int argc, const char *argv[])
     if (add_std_lib)
     {
         size_t runtime_script_size = 0;
-        printf("Runtime:\n");
         for (int i = 0; lapp_libs[i] != NULL; i++)
         {
             lapp_Lib libs = lapp_libs[i];
@@ -298,15 +310,13 @@ int main(int argc, const char *argv[])
                 }
             }
         }
-        printf("    builtin chunk   : %6zu bytes\n", runtime_script_size);
+        log_chunk_size(w, "Runtime chunk", runtime_script_size);
         printf("\n");
     }
 
     /* then scripts from the command line */
     for (size_t i = 0; i < nb_scripts; i++)
     {
-        printf("%s:\n", scripts[i]);
-
         t_chunk chunk = empty_chunk;
         chunk.script_name = safe_strdup(scripts[i]);
         chunk.lib_name = safe_strdup(basename(chunk.script_name));
@@ -328,6 +338,7 @@ int main(int argc, const char *argv[])
         }
         buffer_cat(&b, "\",\n");
         chunk_free(&chunk);
+        log_chunk_size(w, scripts[i], chunk.size);
     }
     if (main_name == NULL) error(NULL, usage);
     buffer_cat(&b, "}\n");
@@ -346,7 +357,7 @@ int main(int argc, const char *argv[])
         printf("\n");
         printf("%s:\n", output);
 
-        printf("    Target          : %s %s\n", target, TOSTRING(MACHINE));
+        printf("    Target      : %s %s\n", target, TOSTRING(MACHINE));
 
         t_chunk main_chunk = empty_chunk;
         main_chunk.source = b.data;
@@ -370,9 +381,10 @@ int main(int argc, const char *argv[])
         {
             chmod(output, S_IRUSR|S_IWUSR|S_IXUSR|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH);
         }
-        printf("    Header          : %6zu bytes\n", sizeof(header));
-        printf("    Lua runtime     : %6zu bytes\n", lrun_size);
-        printf("    Total size      : %6zu bytes\n", lrun_size + main_chunk.size + sizeof(header));
+        printf("    Header      : %7zu bytes\n", sizeof(header));
+        printf("    Lua chunk   : %7zu bytes\n", main_chunk.size);
+        printf("    Lua runtime : %7zu bytes\n", lrun_size);
+        printf("    Total size  : %7zu bytes\n", lrun_size + main_chunk.size + sizeof(header));
 
         chunk_free(&main_chunk);
     }
