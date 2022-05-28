@@ -20,7 +20,7 @@
 
 BUILDS=.build
 CACHE=.cache
-RELEASE=$BUILDS/release
+RELEASE=release
 INDEX=$RELEASE/index.md
 
 set -ex
