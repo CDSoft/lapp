@@ -25,7 +25,6 @@ local strchar = string.char
 local strbyte = string.byte
 local strsub  = string.sub
 local strgsub = string.gsub
-local strrep  = string.rep
 local format  = string.format
 local concat  = table.concat
 local ceil    = math.ceil
@@ -34,7 +33,6 @@ local max     = math.max
 local lshift  = function(a,n) return (a << n) & 0xFFFFFFFF end
 local rshift  = function(a,n) return (a&0xFFFFFFFF) >> n end
 local lrot    = function(a,n) return lshift(a, n) | rshift(a, 32-n) end
-local rrot    = function(a,n) return rshift(a, n) | lshift(a, 32-n) end
 
 -----------------------------------------------------------------------
 -- crypt.hex
@@ -63,7 +61,7 @@ crypt.base64 = {}
 do  -- http://lua-users.org/wiki/BaseSixtyFour
 
     -- character table string
-    local b='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
+    local b64_chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/'
 
     -- encoding
     function crypt.base64.encode(data)
@@ -75,16 +73,16 @@ do  -- http://lua-users.org/wiki/BaseSixtyFour
             if (#x < 6) then return '' end
             local c=0
             for i=1,6 do c=c+(x:sub(i,i)=='1' and 2^(6-i) or 0) end
-            return b:sub(c+1,c+1)
+            return b64_chars:sub(c+1,c+1)
         end)..({ '', '==', '=' })[#data%3+1])
     end
 
     -- decoding
     function crypt.base64.decode(data)
-        data = strgsub(data, '[^'..b..'=]', '')
+        data = strgsub(data, '[^'..b64_chars..'=]', '')
         return (data:gsub('.', function(x)
             if (x == '=') then return '' end
-            local r,f='',(b:find(x)-1)
+            local r,f='',(b64_chars:find(x)-1)
             for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
             return r;
         end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
@@ -179,7 +177,7 @@ hilbig@upb.de
 
 do
 
-    local IV = nil
+    local AES_IV = nil
 
     local function Buffer()
         local buffer = {}
@@ -266,8 +264,8 @@ do
     end
 
     local function properlyDecrypted(data)
-        local random = {strbyte(data, 1, 4)}
-        return random[1]==random[3] and random[2]==random[4]
+        local bytes = {strbyte(data, 1, 4)}
+        return bytes[1]==bytes[3] and bytes[2]==bytes[4]
     end
 
     local function unpadByteString(data)
@@ -745,7 +743,7 @@ do
     -- string - string to encrypt
     -- modeFunction - function for cipher mode to use
     local function encryptString(key, data, modeFunction)
-        local IV = IV or {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        local IV = AES_IV or {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         local keySched = expandEncryptionKey(key)
         local encryptedData = Buffer()
         for i = 1, #data/16 do
@@ -758,7 +756,7 @@ do
     end
 
     -- Electronic code book mode encrypt function
-    local function encryptECB(keySched, byteData, IV)
+    local function encryptECB(keySched, byteData)
         encrypt(keySched, byteData, 1, byteData, 1)
     end
 
@@ -776,7 +774,7 @@ do
     -- string - string to decrypt
     -- modeFunction - function for cipher mode to use
     local function decryptString(key, data, modeFunction)
-        local IV = IV or {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+        local IV = AES_IV or {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
         local keySched = expandDecryptionKey(key)
         local decryptedData = Buffer()
         for i = 1, #data/16 do

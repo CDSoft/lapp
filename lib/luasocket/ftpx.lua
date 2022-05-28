@@ -10,14 +10,14 @@ local socket = require "socket"
 
 local function FTP(url, user, password)
     local ftp = {}
-    local t = socket.url.parse(url)
-    if user then t.user = user end
-    if password then t.password = password end
+    local server = socket.url.parse(url)
+    if user then server.user = user end
+    if password then server.password = password end
 
     local open = socket.protect(function()
-        local f = socket.ftp.open(t.host, t.port, t.create)
+        local f = socket.ftp.open(server.host, server.port, server.create)
         f:greet()
-        f:login(t.user, t.password)
+        f:login(server.user, server.password)
         return f
     end)
 

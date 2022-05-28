@@ -67,8 +67,11 @@ static int bl_lz4_compress_core(const char *src, size_t src_len, char **dst, siz
     unsigned long lz4_max_dst_len = LZ4_COMPRESSBOUND(src_len);
     char *lz4_dst = (char*)safe_malloc(lz4_max_dst_len + sizeof(t_z_header));
     int lz4_dst_len = LZ4_compress_default(src, lz4_dst+sizeof(t_z_header), (int)src_len, (int)lz4_max_dst_len);
-    ((t_z_header *)lz4_dst)->sig = (uint32_t)LZ4_SIG;
-    ((t_z_header *)lz4_dst)->len = (uint32_t)src_len;
+    t_z_header header = {
+        .sig = (uint32_t)LZ4_SIG,
+        .len = (uint32_t)src_len,
+    };
+    memcpy(lz4_dst, &header, sizeof(t_z_header));
     *dst = lz4_dst;
     *dst_len = (size_t)lz4_dst_len;
     *dst_len += sizeof(t_z_header);
@@ -80,8 +83,11 @@ static int bl_lz4hc_compress_core(const char *src, size_t src_len, char **dst, s
     unsigned long lz4_max_dst_len = LZ4_COMPRESSBOUND(src_len);
     char *lz4_dst = (char*)safe_malloc(lz4_max_dst_len + sizeof(t_z_header));
     int lz4_dst_len = LZ4_compress_HC(src, lz4_dst+sizeof(t_z_header), (int)src_len, (int)lz4_max_dst_len, LZ4HC_CLEVEL_MAX);
-    ((t_z_header *)lz4_dst)->sig = (uint32_t)LZ4_SIG;
-    ((t_z_header *)lz4_dst)->len = (uint32_t)src_len;
+    t_z_header header = {
+        .sig = (uint32_t)LZ4_SIG,
+        .len = (uint32_t)src_len,
+    };
+    memcpy(lz4_dst, &header, sizeof(t_z_header));
     *dst = lz4_dst;
     *dst_len = (size_t)lz4_dst_len;
     *dst_len += sizeof(t_z_header);
@@ -90,7 +96,9 @@ static int bl_lz4hc_compress_core(const char *src, size_t src_len, char **dst, s
 
 static int bl_lz4_decompress_core(lua_State *L, const char *src, size_t src_len, char **dst, size_t *dst_len)
 {
-    if (((const t_z_header *)src)->sig == LZ4_SIG)
+    t_z_header header;
+    memcpy(&header, src, sizeof(t_z_header));
+    if (header.sig == LZ4_SIG)
     {
         *dst_len = ((const t_z_header *)src)->len + 3;
         *dst = (char*)safe_malloc(*dst_len);

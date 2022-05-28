@@ -50,7 +50,7 @@
 
 #include "lapp_version.h"
 
-#define LAPP_MAGIC     (~*(uint64_t*)"LAPP;-)")
+#define LAPP_MAGIC     (~0x292D3B5050414CULL)
 #define LAPP_SIGNATURE "\x1b" "Compiled with lapp "LAPP_VERSION" (http://cdelord.fr/lapp)" "\0"
 
 typedef struct __attribute__((packed))

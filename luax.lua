@@ -152,7 +152,7 @@ if interactive then
     local function try(input)
         local chunk, err = load(input, "=stdin")
         if not chunk then
-            if err:match "<eof>$" then return "cont" end
+            if err and type(err) == "string" and err:match "<eof>$" then return "cont" end
             return nil, err
         end
         local res = table.pack(xpcall(chunk, traceback))

@@ -92,6 +92,7 @@ CC_OPT += -Wmissing-declarations
 CC_OPT += -Werror=switch-enum
 CC_OPT += -Werror=implicit-fallthrough
 CC_OPT += -Werror=missing-prototypes
+CC_OPT += -Wno-declaration-after-statement
 endif
 
 MINGW_OPT = $(CC_OPT)

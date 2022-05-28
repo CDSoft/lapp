@@ -62,27 +62,26 @@ char *safe_strdup(const char *s)
     return check_ptr(strdup(s));
 }
 
-const char *last_index(const char *s, char c)
+static size_t last_index(const char *s, char c)
 {
-    const char *i = NULL;
-    const char *p = s;
-    while (*p != '\0')
+    size_t idx = MAX_SIZET;
+    size_t i;
+    for (i = 0; s[i] != '\0'; i++)
     {
-        if (*p == c) i = p;
-        p++;
+        if (s[i] == c) idx = i;
     }
-    if (i == NULL) i = p;
-    return i;
+    if (idx == MAX_SIZET) idx = i;
+    return idx;
 }
 
 const char *ext(const char *name)
 {
-    return last_index(name, '.');
+    return &name[last_index(name, '.')];
 }
 
 void strip_ext(char *name)
 {
-    *(char*)ext(name) = '\0';
+    name[last_index(name, '.')] = '\0';
 }
 
 int bl_pushresult(lua_State *L, int i, const char *filename)

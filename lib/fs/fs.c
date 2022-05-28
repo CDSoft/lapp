@@ -172,7 +172,7 @@ static int fs_copy(lua_State *L)
     const char *toname = luaL_checkstring(L, 2);
     int _en;
     FILE *from, *to;
-    int n;
+    size_t n;
     char buffer[FS_BUFSIZE];
     struct stat st;
     struct utimbuf t;
@@ -188,7 +188,7 @@ static int fs_copy(lua_State *L)
     }
     while ((n = fread(buffer, sizeof(char), FS_BUFSIZE, from)))
     {
-        if (fwrite(buffer, sizeof(char), n, to) != (size_t)n)
+        if (fwrite(buffer, sizeof(char), n, to) != n)
         {
             _en = errno;
             fclose(from);
@@ -233,27 +233,27 @@ static int fs_stat(lua_State *L)
     struct stat buf;
     if (stat(path, &buf)==0)
     {
-#define STRING(VAL, ATTR) lua_pushstring(L, VAL); lua_setfield(L, -2, ATTR)
-#define INTEGER(VAL, ATTR) lua_pushinteger(L, VAL); lua_setfield(L, -2, ATTR)
+#define STRING(VAL, ATTR) { lua_pushstring(L, VAL); lua_setfield(L, -2, ATTR); }
+#define INTEGER(VAL, ATTR) { lua_pushinteger(L, VAL); lua_setfield(L, -2, ATTR); }
         lua_newtable(L); /* stat */
-        STRING(path, "name");
-        INTEGER(buf.st_size, "size");
-        INTEGER(buf.st_mtime, "mtime");
-        INTEGER(buf.st_atime, "atime");
-        INTEGER(buf.st_ctime, "ctime");
-        STRING(S_ISDIR(buf.st_mode)?"directory":S_ISREG(buf.st_mode)?"file":"unknown", "type");
-        INTEGER(buf.st_mode, "mode");
-#define PERMISSION(MASK, ATTR) lua_pushboolean(L, buf.st_mode & MASK); lua_setfield(L, -2, ATTR);
-        PERMISSION(S_IRUSR, "uR");
-        PERMISSION(S_IWUSR, "uW");
-        PERMISSION(S_IXUSR, "uX");
+        STRING(path, "name")
+        INTEGER(buf.st_size, "size")
+        INTEGER(buf.st_mtime, "mtime")
+        INTEGER(buf.st_atime, "atime")
+        INTEGER(buf.st_ctime, "ctime")
+        STRING(S_ISDIR(buf.st_mode)?"directory":S_ISREG(buf.st_mode)?"file":"unknown", "type")
+        INTEGER(buf.st_mode, "mode")
+#define PERMISSION(MASK, ATTR) { lua_pushboolean(L, buf.st_mode & MASK); lua_setfield(L, -2, ATTR); }
+        PERMISSION(S_IRUSR, "uR")
+        PERMISSION(S_IWUSR, "uW")
+        PERMISSION(S_IXUSR, "uX")
 #ifndef __MINGW32__
-        PERMISSION(S_IRGRP, "gR");
-        PERMISSION(S_IWGRP, "gW");
-        PERMISSION(S_IXGRP, "gX");
-        PERMISSION(S_IROTH, "oR");
-        PERMISSION(S_IWOTH, "oW");
-        PERMISSION(S_IXOTH, "oX");
+        PERMISSION(S_IRGRP, "gR")
+        PERMISSION(S_IWGRP, "gW")
+        PERMISSION(S_IXGRP, "gX")
+        PERMISSION(S_IROTH, "oR")
+        PERMISSION(S_IWOTH, "oW")
+        PERMISSION(S_IXOTH, "oX")
 #endif
 #undef STRING
 #undef INTEGER
@@ -323,13 +323,13 @@ static int fs_inode(lua_State *L)
     struct stat buf;
     if (stat(path, &buf)==0)
     {
-#define INTEGER(VAL, ATTR) lua_pushinteger(L, VAL); lua_setfield(L, -2, ATTR)
+#define INTEGER(VAL, ATTR) { lua_pushinteger(L, VAL); lua_setfield(L, -2, ATTR); }
         lua_newtable(L); /* stat */
-        INTEGER(buf.st_dev, "dev");
+        INTEGER((lua_Integer)buf.st_dev, "dev")
 #ifdef __MINGW32__
-        INTEGER(getino(path), "ino");
+        INTEGER((lua_Integer)getino(path), "ino")
 #else
-        INTEGER(buf.st_ino, "ino");
+        INTEGER((lua_Integer)buf.st_ino, "ino")
 #endif
 #undef INTEGER
         return 1;
@@ -349,7 +349,8 @@ static int fs_chmod(lua_State *L)
         mode = 0;
         for (int i=2; !lua_isnone(L, i); i++)
         {
-            mode |= (mode_t)luaL_checknumber(L, i);
+            const lua_Number n = luaL_checknumber(L, i);
+            mode |= (mode_t)n;
         }
     }
     else if (lua_type(L, 2) == LUA_TSTRING)
@@ -376,7 +377,8 @@ static int fs_touch(lua_State *L)
     }
     else if (lua_type(L, 2) == LUA_TNUMBER)
     {
-        t.actime = t.modtime = luaL_checknumber(L, 2);
+        const lua_Number n = luaL_checknumber(L, 2);
+        t.actime = t.modtime = (time_t)n;
     }
     else if (lua_type(L, 2) == LUA_TSTRING)
     {

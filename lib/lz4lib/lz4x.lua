@@ -18,5 +18,5 @@ For further information about lapp you can visit
 http://cdelord.fr/lapp
 --]]
 
-local lz4 = require "lz4"
+--local lz4 = require "lz4"
 
