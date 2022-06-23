@@ -91,9 +91,11 @@ return function()
     test_files(fs.walk, {"/bar","/foo","/level1","/level1/level2","/level1/level2/level3","/bar/baz","/bar.txt","/f1.txt","/f2.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
 
     eq(fs.is_file(fs.join(tmp, "f1.txt")), true)
+    eq(fs.is_file(fs.join(tmp, "unknown")), false)
     eq(fs.is_file(fs.join(tmp, "foo")), false)
 
     eq(fs.is_dir(fs.join(tmp, "f1.txt")), false)
+    eq(fs.is_dir(fs.join(tmp, "unknown")), false)
     eq(fs.is_dir(fs.join(tmp, "foo")), true)
 
     local stat_f1 = fs.stat(fs.join(tmp, "f1.txt"))
