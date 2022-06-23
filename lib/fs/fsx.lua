@@ -27,11 +27,14 @@ function fs.join(...)
 end
 
 function fs.is_file(name)
-    return fs.stat(name).type == "file"
+    local stat = fs.stat(name)
+    return stat ~= nil and stat.type == "file"
 end
 
 function fs.is_dir(name)
-    return fs.stat(name).type == "directory"
+    local stat = fs.stat(name)
+    return stat ~= nil and stat.type == "directory"
+end
 
 function fs.mkdirs(path)
     if fs.stat(path) then return end
