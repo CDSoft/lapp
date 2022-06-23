@@ -105,6 +105,13 @@ STDLIBS_INC += lib/qmath
 STDLIBS_INC += $(BUILD)/lqmath-$(QMATH_VERSION)/src
 STDLIBS_SOURCES += $(QMATH_SOURCES)
 
+# complex
+COMPLEX_VERSION = 100
+COMPLEX_URL = https://web.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lcomplex-$(COMPLEX_VERSION).tar.gz
+COMPLEX_SOURCES = $(BUILD)/lcomplex-$(COMPLEX_VERSION)/lcomplex.c
+STDLIBS_INC += lib/complex
+STDLIBS_SOURCES += $(COMPLEX_SOURCES)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -128,19 +135,19 @@ MINGW_OPT += -Wno-error=attributes
 endif
 
 ifneq ($(CHECKS),OFF)
-$(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpcode.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/linux/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/win/.build/lpeg-$(LPEG_VERSION)/lpvm.o: MINGW_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
-$(BUILD)/linux/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
-$(BUILD)/linux/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
-$(BUILD)/linux/lrun: CC_OPT += -Wno-error=maybe-uninitialized
-$(BUILD)/win/external/luasocket/src/serial.o: MINGW_OPT += -Wno-error=missing-prototypes
-$(BUILD)/win/external/luasocket/src/options.o: MINGW_OPT += -Wno-error=implicit-function-declaration
-$(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-attributes
-$(BUILD)/linux/.build/limath-$(IMATH_VERSION)/src/imath.o: CC_OPT += -Wno-error=unused-parameter
-$(BUILD)/win/.build/limath-$(IMATH_VERSION)/src/imath.o: MINGW_OPT += -Wno-error=unused-parameter
-$(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-maybe-uninitialized
+$(BUILD)/%/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/%/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
+$(BUILD)/%/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/%/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/win/external/luasocket/src/options.o: CC_OPT += -Wno-error=implicit-function-declaration
+$(BUILD)/%/.build/mathx/lmathx.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/%/.build/limath-$(IMATH_VERSION)/limath.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/%/.build/limath-$(IMATH_VERSION)/src/imath.o: CC_OPT += -Wno-error=unused-parameter
+$(BUILD)/%/.build/lqmath-$(QMATH_VERSION)/lqmath.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/%/.build/lqmath-$(QMATH_VERSION)/src/imath.o: CC_OPT += -Wno-error=unused-parameter
+$(BUILD)/%/.build/lcomplex-$(COMPLEX_VERSION)/lcomplex.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/linux/lrun: CC_OPT += -Wno-maybe-uninitialized
+$(BUILD)/win/lrun.exe: CC_OPT += -Wno-error=maybe-uninitialized -Wno-attributes
 endif
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
@@ -499,6 +506,19 @@ $(CACHE)/$(notdir $(QMATH_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(QMATH_URL) -O $@
+
+# complex
+
+$(COMPLEX_SOURCES): $(CACHE)/$(notdir $(COMPLEX_URL))
+	@$(call cyan,"TAR",$@)
+	@mkdir -p $(dir $@)
+	@tar -xzf $< -C $(BUILD)
+	@touch $(COMPLEX_SOURCES)
+
+$(CACHE)/$(notdir $(COMPLEX_URL)):
+	@$(call cyan,"WGET",$@)
+	@mkdir -p $(dir $@)
+	@wget -c $(COMPLEX_URL) -O $@
 
 # luax
 

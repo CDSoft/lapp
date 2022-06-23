@@ -47,6 +47,7 @@
 #include "mathx.h"
 #include "imathlib.h"
 #include "qmathlib.h"
+#include "complexlib.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"std", luaopen_std},
@@ -61,6 +62,7 @@ static const luaL_Reg lrun_libs[] = {
     {"mathx", luaopen_mathx},
     {"imath", luaopen_imath},
     {"qmath", luaopen_qmath},
+    {"complex", luaopen_complex},
     {NULL, NULL},
 };
 
