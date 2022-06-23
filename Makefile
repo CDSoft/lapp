@@ -87,6 +87,15 @@ STDLIBS_SOURCES += $(MATHX_SOURCES)
 linux: $(MATHX_SOURCES)
 windows: $(MATHX_SOURCES)
 
+# imath
+IMATH_VERSION = 104
+IMATH_URL = https://web.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/limath-$(IMATH_VERSION).tar.gz
+IMATH_SOURCES = $(BUILD)/limath-$(IMATH_VERSION)/limath.c
+IMATH_SOURCES += $(BUILD)/limath-$(IMATH_VERSION)/src/imath.c
+STDLIBS_INC += lib/imath
+STDLIBS_INC += $(BUILD)/limath-$(IMATH_VERSION)/src
+STDLIBS_SOURCES += $(IMATH_SOURCES)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -120,6 +129,9 @@ $(BUILD)/linux/lrun: CC_OPT += -Wno-error=maybe-uninitialized
 $(BUILD)/win/external/luasocket/src/serial.o: MINGW_OPT += -Wno-error=missing-prototypes
 $(BUILD)/win/external/luasocket/src/options.o: MINGW_OPT += -Wno-error=implicit-function-declaration
 $(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-attributes
+$(BUILD)/linux/.build/limath-$(IMATH_VERSION)/src/imath.o: CC_OPT += -Wno-error=unused-parameter
+$(BUILD)/win/.build/limath-$(IMATH_VERSION)/src/imath.o: MINGW_OPT += -Wno-error=unused-parameter
+$(BUILD)/win/lrun.exe: MINGW_OPT += -Wno-maybe-uninitialized
 endif
 
 LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
@@ -452,6 +464,19 @@ $(CACHE)/$(notdir $(MATHX_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(MATHX_URL) -O $@
+
+# imath
+
+$(IMATH_SOURCES): $(CACHE)/$(notdir $(IMATH_URL))
+	@$(call cyan,"TAR",$@)
+	@mkdir -p $(dir $@)
+	@tar -xzf $< -C $(BUILD)
+	@touch $(IMATH_SOURCES)
+
+$(CACHE)/$(notdir $(IMATH_URL)):
+	@$(call cyan,"WGET",$@)
+	@mkdir -p $(dir $@)
+	@wget -c $(IMATH_URL) -O $@
 
 # luax
 

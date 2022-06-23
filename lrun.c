@@ -45,6 +45,7 @@
 #include "std.h"
 #include "sys.h"
 #include "mathx.h"
+#include "imathlib.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"std", luaopen_std},
@@ -57,6 +58,7 @@ static const luaL_Reg lrun_libs[] = {
     {"crypt", luaopen_crypt},
     {"rl", luaopen_rl},
     {"mathx", luaopen_mathx},
+    {"imath", luaopen_imath},
     {NULL, NULL},
 };
 
