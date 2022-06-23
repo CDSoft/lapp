@@ -44,6 +44,7 @@
 #include "rl.h"
 #include "std.h"
 #include "sys.h"
+#include "mathx.h"
 
 static const luaL_Reg lrun_libs[] = {
     {"std", luaopen_std},
@@ -55,6 +56,7 @@ static const luaL_Reg lrun_libs[] = {
     {"luasocket", luaopen_luasocket},
     {"crypt", luaopen_crypt},
     {"rl", luaopen_rl},
+    {"mathx", luaopen_mathx},
     {NULL, NULL},
 };
 

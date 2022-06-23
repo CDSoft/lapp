@@ -78,6 +78,15 @@ STDLIBS_LUA += $(wildcard external/luasocket/src/*.lua)
 STDLIBS_INC += lib/rl
 STDLIBS_SOURCES += lib/rl/rl.c
 
+# mathx
+MATHX_URL = https://web.tecgraf.puc-rio.br/~lhf/ftp/lua/5.3/lmathx.tar.gz
+MATHX_SOURCES = $(BUILD)/mathx/lmathx.c
+STDLIBS_INC += $(dir $(MATHX_SOURCES)) lib/mathx
+STDLIBS_SOURCES += lib/mathx/mathx.c
+
+linux: $(MATHX_SOURCES)
+windows: $(MATHX_SOURCES)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -422,6 +431,7 @@ $(BUILD)/%.luao: %.lua
 
 $(LPEG_SOURCES) $(LPEG_SCRIPTS): $(CACHE)/$(notdir $(LPEG_URL))
 	@$(call cyan,"TAR",$@)
+	@mkdir -p $(dir $@)
 	@tar -xzf $< -C $(BUILD)
 	@touch $(LPEG_SOURCES) $(LPEG_SCRIPTS)
 
@@ -429,6 +439,19 @@ $(CACHE)/$(notdir $(LPEG_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(LPEG_URL) -O $@
+
+# mathx
+
+$(MATHX_SOURCES): $(CACHE)/$(notdir $(MATHX_URL))
+	@$(call cyan,"TAR",$@)
+	@mkdir -p $(dir $@)
+	@tar -xzf $< -C $(BUILD)
+	@touch $(MATHX_SOURCES)
+
+$(CACHE)/$(notdir $(MATHX_URL)):
+	@$(call cyan,"WGET",$@)
+	@mkdir -p $(dir $@)
+	@wget -c $(MATHX_URL) -O $@
 
 # luax
 
