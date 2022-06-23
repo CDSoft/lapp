@@ -96,6 +96,15 @@ STDLIBS_INC += lib/imath
 STDLIBS_INC += $(BUILD)/limath-$(IMATH_VERSION)/src
 STDLIBS_SOURCES += $(IMATH_SOURCES)
 
+# qmath
+QMATH_VERSION = 104
+QMATH_URL = https://web.tecgraf.puc-rio.br/~lhf/ftp/lua/ar/lqmath-$(QMATH_VERSION).tar.gz
+QMATH_SOURCES = $(BUILD)/lqmath-$(QMATH_VERSION)/lqmath.c
+QMATH_SOURCES += $(BUILD)/lqmath-$(QMATH_VERSION)/src/imrat.c
+STDLIBS_INC += lib/qmath
+STDLIBS_INC += $(BUILD)/lqmath-$(QMATH_VERSION)/src
+STDLIBS_SOURCES += $(QMATH_SOURCES)
+
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
 CC_OPT = -O3 -flto -s
@@ -477,6 +486,19 @@ $(CACHE)/$(notdir $(IMATH_URL)):
 	@$(call cyan,"WGET",$@)
 	@mkdir -p $(dir $@)
 	@wget -c $(IMATH_URL) -O $@
+
+# qmath
+
+$(QMATH_SOURCES): $(CACHE)/$(notdir $(QMATH_URL))
+	@$(call cyan,"TAR",$@)
+	@mkdir -p $(dir $@)
+	@tar -xzf $< -C $(BUILD)
+	@touch $(QMATH_SOURCES)
+
+$(CACHE)/$(notdir $(QMATH_URL)):
+	@$(call cyan,"WGET",$@)
+	@mkdir -p $(dir $@)
+	@wget -c $(QMATH_URL) -O $@
 
 # luax
 
