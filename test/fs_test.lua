@@ -57,10 +57,13 @@ return function()
     fs.mkdir "bar/baz"
     fun.foreach(createfile, {"foo.txt", "bar.txt", "foo/foo.txt", "bar/bar.txt", "bar/baz/baz.txt"})
 
-    eq(sort(fs.dir()),{"bar","bar.txt","foo","foo.txt"})
-    eq(sort(fs.dir(".")),{"bar","bar.txt","foo","foo.txt"})
+    fs.mkdirs(fs.join(tmp, "level1", "level2", "level3"))
+    eq(fs.is_dir(fs.join(tmp, "level1", "level2", "level3")), true)
+
+    eq(sort(fs.dir()),{"bar","bar.txt","foo","foo.txt", "level1"})
+    eq(sort(fs.dir(".")),{"bar","bar.txt","foo","foo.txt", "level1"})
     fs.chdir(cwd)
-    eq(sort(fs.dir(tmp)),{"bar","bar.txt","foo","foo.txt"})
+    eq(sort(fs.dir(tmp)),{"bar","bar.txt","foo","foo.txt", "level1"})
     fs.chdir(tmp)
 
     local function test_files(f, testfiles, reverse)
@@ -71,10 +74,10 @@ return function()
         fs.chdir(tmp)
     end
 
-    test_files(fs.walk, {"/bar","/foo","/bar/baz","/bar.txt","/foo.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
+    test_files(fs.walk, {"/bar","/foo","/level1","/level1/level2","/level1/level2/level3","/bar/baz","/bar.txt","/foo.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
     assert(fs.rename(fs.join(tmp, "foo.txt"), fs.join(tmp, "foo2.txt")))
-    test_files(fs.walk, {"/bar","/foo","/bar/baz","/bar.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
-    test_files(fs.walk, {"/bar.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt","/bar/baz","/foo","/bar"}, true)
+    test_files(fs.walk, {"/bar","/foo","/level1","/level1/level2","/level1/level2/level3","/bar/baz","/bar.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
+    test_files(fs.walk, {"/bar.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt","/bar/baz","/level1/level2/level3","/level1/level2","/level1","/foo","/bar"}, true)
 
     local content1 = "Lua is great!!!"
     local f1 = assert(io.open(fs.join(tmp, "f1.txt"), "w"))
@@ -85,7 +88,7 @@ return function()
     local content2 = f2:read("*a")
     f2:close()
     eq(content2, content1)
-    test_files(fs.walk, {"/bar","/foo","/bar/baz","/bar.txt","/f1.txt","/f2.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
+    test_files(fs.walk, {"/bar","/foo","/level1","/level1/level2","/level1/level2/level3","/bar/baz","/bar.txt","/f1.txt","/f2.txt","/foo2.txt","/foo/foo.txt","/bar/bar.txt","/bar/baz/baz.txt"})
 
     eq(fs.is_file(fs.join(tmp, "f1.txt")), true)
     eq(fs.is_file(fs.join(tmp, "foo")), false)
