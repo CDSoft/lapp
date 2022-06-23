@@ -32,6 +32,11 @@ end
 
 function fs.is_dir(name)
     return fs.stat(name).type == "directory"
+
+function fs.mkdirs(path)
+    if fs.stat(path) then return end
+    fs.mkdirs(fs.dirname(path))
+    fs.mkdir(path)
 end
 
 -- fs.walk(path) iterates over the file names in path and its subdirectories

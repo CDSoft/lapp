@@ -386,6 +386,8 @@ Methods are:
 
 - `mkdir(path)` creates the directory `path`.
 
+- `mkdirs(path)` recursively creates the directory `path`.
+
 - `rmdir(path)` deletes the directory `path`.
 
 - `list(path)` returns an iterator listing the directory `path`.
