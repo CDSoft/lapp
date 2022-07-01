@@ -125,7 +125,7 @@ static int fs_glob(lua_State *L)
     }
     glob_t globres;
     unsigned int i;
-    int r = glob(pattern, GLOB_BRACE, NULL, &globres);
+    int r = glob(pattern, 0, NULL, &globres);
     if (r == 0 || r == GLOB_NOMATCH)
     {
         lua_newtable(L); /* file list */

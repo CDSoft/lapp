@@ -20,7 +20,7 @@ dependencies and submodules and run `make`:
 ```sh
 $ git clone https://github.com/CDSoft/lapp
 $ cd lapp
-$ sudo make dep         # install make, gcc, readline, ...
+$ sudo make dep         # install make, gcc (musl-gcc), ...
 $ make submodules       # retreive submodules (luasocket, lz4, ...)
 $ make                  # compile and test
 ```
@@ -466,13 +466,10 @@ Methods are:
 
 ### rl: readline
 
-The rl (readline) package was initially inspired by
-[ilua](https://github.com/ilua)
-and adapted for lapp.
-
 **rl.read(prompt)** prints `prompt` and returns the string entered by the user.
 
-**rl.add(line)** adds `line` to the readline history (Linux only).
+**Warning**: `rl` is no longer related to the Linux readline library.
+If you need readline, you can use `rlwrap` on Linux.
 
 ## License
 

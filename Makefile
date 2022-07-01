@@ -24,6 +24,28 @@ INSTALL_PATH = $(firstword $(wildcard $(PREFIX) $(HOME)/.local/bin $(HOME)/bin))
 BUILD = .build
 CACHE = .cache
 
+ifeq ($(shell which musl-gcc 2>/dev/null),)
+HAS_MUSL = 0
+CC = gcc
+else
+HAS_MUSL = 1
+CC = musl-gcc
+endif
+
+MINGW_CC = x86_64-w64-mingw32-gcc
+
+ifeq ($(shell which $(MINGW_CC) 2>/dev/null),)
+HAS_MINGW = 0
+else
+HAS_MINGW = 1
+endif
+
+ifeq ($(shell which wine 2>/dev/null),)
+HAS_WINE = 0
+else
+HAS_WINE = 1
+endif
+
 LUA_ARCHIVE = $(CACHE)/lua-$(LUA_VERSION).tar.gz
 
 LZ4_SRC = external/lz4/lib/lz4.c external/lz4/lib/lz4hc.c
@@ -114,7 +136,7 @@ STDLIBS_SOURCES += $(COMPLEX_SOURCES)
 
 STDLIBS_CHUNKS = $(patsubst %.lua,$(BUILD)/%_chunk.c,$(STDLIBS_LUA))
 
-CC_OPT = -O3 -flto -s
+CC_OPT = -Os -flto -s
 CC_OPT += -std=gnu99
 CC_OPT += -ffunction-sections -fdata-sections -Wl,-gc-sections
 ifneq ($(CHECKS),OFF)
@@ -139,6 +161,7 @@ $(BUILD)/%/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enu
 $(BUILD)/%/.build/lpeg-$(LPEG_VERSION)/lpvm.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
 $(BUILD)/%/external/luasocket/src/serial.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/%/external/luasocket/src/unixdgram.o: CC_OPT += -Wno-error=missing-prototypes
+$(BUILD)/%/external/luasocket/src/usocket.o: CC_OPT += -Wno-error=cpp
 $(BUILD)/win/external/luasocket/src/options.o: CC_OPT += -Wno-error=implicit-function-declaration
 $(BUILD)/%/.build/mathx/lmathx.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/%/.build/limath-$(IMATH_VERSION)/limath.o: CC_OPT += -Wno-error=missing-prototypes
@@ -148,12 +171,12 @@ $(BUILD)/%/.build/lqmath-$(QMATH_VERSION)/src/imath.o: CC_OPT += -Wno-error=unus
 $(BUILD)/%/.build/lcomplex-$(COMPLEX_VERSION)/lcomplex.o: CC_OPT += -Wno-error=missing-prototypes
 $(BUILD)/linux/lrun: CC_OPT += -Wno-maybe-uninitialized
 $(BUILD)/win/lrun.exe: CC_OPT += -Wno-error=maybe-uninitialized -Wno-attributes
+$(BUILD)/win/lapp.exe: CC_OPT += -Wno-error=maybe-uninitialized -Wno-attributes
 endif
 
-LUA_CC_OPT = -O3 -ffunction-sections -fdata-sections
+LUA_CC_OPT = -Os -ffunction-sections -fdata-sections
 LUA_LD_OPT = -flto -s -Wl,-gc-sections
 
-CC = gcc
 LUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/lua
 LUAC = $(BUILD)/linux/lua-$(LUA_VERSION)/src/luac
 LIBLUA = $(BUILD)/linux/lua-$(LUA_VERSION)/src/liblua.a
@@ -165,9 +188,11 @@ CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
 CC_INC += -I$(BUILD)/linux
 CC_INC += -I$(LZ4_INC)
 CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
-CC_LIB = -lm -ldl -lreadline -lrt
+ifeq ($(HAS_MUSL),1)
+CC_LIB = -static
+endif
+CC_LIB += -lm -ldl -lrt
 
-MINGW_CC = x86_64-w64-mingw32-gcc
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
 LRUNW = $(BUILD)/win/lrun.exe
 LAPPW = $(BUILD)/win/lapp.exe
@@ -189,19 +214,7 @@ CC_OPT += -DKERNEL=$(KERNEL) -DMACHINE=$(MACHINE)
 LAPP_TAR = $(BUILD)/linux/lapp-$(shell . /etc/os-release; echo "$$(git describe --tags)-$$ID-$$VERSION_ID")-$(MACHINE).tar.gz
 LAPP_ZIP = $(BUILD)/win/lapp-$(shell git describe --tags)-win-$(MACHINE).zip
 
-ifeq ($(shell which $(MINGW_CC) 2>/dev/null),)
-HAS_MINGW = 0
-else
-HAS_MINGW = 1
-endif
-
 CC_OPT += -DHAS_MINGW=$(HAS_MINGW)
-
-ifeq ($(shell which wine 2>/dev/null),)
-HAS_WINE = 0
-else
-HAS_WINE = 1
-endif
 
 .PHONY: all test diff linux windows install install_linux install_windows release
 
@@ -221,14 +234,15 @@ cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
 ifneq ($(shell which apt 2>/dev/null),)
 dep:
-	sudo apt install make gcc libreadline-dev wget
+	sudo apt install make gcc wget
+	-sudo apt install musl-gcc
 else
 ifneq ($(shell which dnf 2>/dev/null),)
 dep:
-	dnf install make gcc readline-devel wget hostname diffutils which
+	sudo dnf install make gcc musl-gcc wget hostname diffutils which
 else
 dep:
-	echo "apt or dnf not found. Please install 'make', 'gcc' and 'libreadline-dev' (or equivalent on your OS)."
+	echo "apt or dnf not found. Please install 'make', 'gcc' and 'musl-gcc' (or equivalent on your OS)."
 endif
 endif
 

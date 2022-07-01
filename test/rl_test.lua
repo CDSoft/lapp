@@ -26,5 +26,4 @@ local rl = require "rl"
 
 return function()
     eq(type(rl.read), "function")
-    eq(type(rl.add), "function")
 end

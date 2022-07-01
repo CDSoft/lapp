@@ -167,7 +167,9 @@ end
 
 local function interpolate(s, t)
     return (s:gsub("%$(%b())", function(x)
-        return (assert(load("return "..x, nil, "t", t)))()
+        local y = ((assert(load("return "..x, nil, "t", t)))())
+        if type(y) == "table" then y = tostring(y) end
+        return y
     end))
 end
 
