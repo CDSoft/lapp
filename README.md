@@ -20,7 +20,7 @@ dependencies and submodules and run `make`:
 ```sh
 $ git clone https://github.com/CDSoft/lapp
 $ cd lapp
-$ sudo make dep         # install make, gcc, readline, ...
+$ sudo make dep         # install make, gcc (musl-gcc), ...
 $ make submodules       # retreive submodules (luasocket, lz4, ...)
 $ make                  # compile and test
 ```
@@ -42,6 +42,10 @@ They do not need to be installed and can be copied anywhere you want.
 It is usually highly recommended to build `lapp` from sources.
 Some precompiled binaries are available here: [lapp release](http://cdelord.fr/lapp/release.html).
 
+The Linux and Raspberry Pi binaries are linked statically with
+[musl](https://musl.libc.org/) and are not dynamic executables. They should
+work on any Linux distributions.
+
 ## Usage
 
 ```
@@ -57,7 +61,7 @@ Other scripts are libraries that can be loaded by the main script.
 The name of `OUTPUT` defines the target platform:
 
 - `OUTPUT.exe` produces a Windows binary
-- `OUTPUT.lc` produces a portable bytecode (to be run with `luax OUTPUT.lc`
+- `OUTPUT.lc` produces a portable bytecode (to be run with `luax OUTPUT.lc`)
 - `OUTPUT` produces a Linux executable
 
 ## Examples
@@ -67,7 +71,6 @@ The name of `OUTPUT` defines the target platform:
 | Linux   | Linux       | `lapp main.lua lib1.lua lib2.lua -o linux_executable`              |
 | Linux   | Windows     | `lapp main.lua lib1.lua lib2.lua -o windows_executable.exe`        |
 | Linux   | Bytecode    | `lapp main.lua lib1.lua lib2.lua -o bytecode.lc`                   |
-| Windows | Linux       | Not available (too many Linux distributions)                       |
 | Windows | Windows     | `lapp.exe main.lua lib1.lua lib2.lua -o windows_executable.exe`    |
 | Windows | Bytecode    | `lapp.exe main.lua lib1.lua lib2.lua -o bytecode.lc`               |
 
@@ -82,7 +85,8 @@ Running `luax bytecode.lc` is equivalent to running `luax main.lua` or `luax.exe
 Building `lapp` requires some external softwares.
 
 - [wget](https://www.gnu.org/software/wget/): to download the Lua sources
-- [gcc](https://gcc.gnu.org/): used to compile Lua and `lapp` for Linux
+- [gcc](https://gcc.gnu.org/) and [musl](https://musl.libc.org/): used to
+  compile Lua and `lapp` for Linux
 - [MinGW-w64](https://www.mingw-w64.org/): Linux port of the Windows MinGW
   compiler used to compile the Windows version of `lapp.exe`
 - [Wine](https://www.winehq.org/): used to test the Windows binaries on Linux
@@ -220,7 +224,7 @@ modification time of file `name` with the times of file `other_name`.
 **`fs.join(...)`{.lua}** return a path name made of several path components
 (separated by `fs.sep`).
 
-**`fs.sep`{.lua}** is the directory separator (/ or \\).
+**`fs.sep`{.lua}** is the directory separator (`/` or `\\`).
 
 **`fs.uR, fs.uW, fs.uX`{.lua}** are the User Read/Write/eXecute mask for
 `fs.chmod`.
@@ -466,13 +470,10 @@ Methods are:
 
 ### rl: readline
 
-The rl (readline) package was initially inspired by
-[ilua](https://github.com/ilua)
-and adapted for lapp.
-
 **rl.read(prompt)** prints `prompt` and returns the string entered by the user.
 
-**rl.add(line)** adds `line` to the readline history (Linux only).
+**Warning**: `rl` is no longer related to the Linux readline library.
+If you need readline, you can use `rlwrap` on Linux.
 
 ## License
 
