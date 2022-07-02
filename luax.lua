@@ -159,8 +159,6 @@ if interactive then
         local ok = table.remove(res, 1)
         if ok then
             if res ~= nil then print(table.unpack(res)) end
-        else
-            os.exit(1)
         end
         return "done"
     end
