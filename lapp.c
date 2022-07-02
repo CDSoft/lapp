@@ -46,10 +46,11 @@
 #define STRINGIFY(x) #x
 #define TOSTRING(x) STRINGIFY(x)
 
-#define WELCOME ( "Lua application compiler "LAPP_VERSION"\n"                       \
-                  "Copyright (C) 2021-2022 Christophe Delord (cdelord.fr/lapp)\n"   \
-                  "Based on "LUA_COPYRIGHT"\n"                                      \
-                )
+#define WELCOME (                                                           \
+    "Lua application compiler "LAPP_VERSION"\n"                             \
+    "Copyright (C) 2021-2022 Christophe Delord (http://cdelord.fr/lapp)\n"  \
+    "Based on "LUA_COPYRIGHT"\n"                                            \
+    )
 
 static const char *usage =
     "usage: lapp <main Lua script> [Lua libraries] -o <executable name>\n"
