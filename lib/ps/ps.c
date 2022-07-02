@@ -24,6 +24,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fcntl.h>
+#include <math.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -55,10 +56,10 @@ static int ps_sleep(lua_State *L)
     Sleep(1000 * t);
 #else
     struct timeval timeout;
-    long int s = t;
-    long int us = 1e6*(t-s);
-    timeout.tv_sec = s;
-    timeout.tv_usec = us;
+    double s;
+    double us = modf(t, &s);
+    timeout.tv_sec = (long int)s;
+    timeout.tv_usec = (long int)(1e6*us);
     select(0, NULL, NULL, NULL, &timeout);
 #endif
     return 0;
