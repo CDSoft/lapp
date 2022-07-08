@@ -234,9 +234,7 @@ cyan = /bin/echo -e "\x1b[36m[$1]\x1b[0m $2"
 
 ifneq ($(shell which apt 2>/dev/null),)
 dep:
-	sudo apt install -y make gcc wget
-	-sudo apt install -y musl-gcc
-	-sudo apt install -y musl-tools
+	sudo apt install -y make gcc musl-tools wget
 else
 ifneq ($(shell which dnf 2>/dev/null),)
 dep:
