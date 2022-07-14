@@ -27,7 +27,7 @@ set -ex
 index()
 {
     case "$1" in
-        \#*)   echo " "; echo "$1"; echo " ";;
+        \#*)    echo " "; echo "$1"; echo " ";;
         *)      echo "$1";;
     esac >> $INDEX
 }
@@ -45,7 +45,7 @@ build_linux()
     [ -f $RELEASE/$ARCHIVE_LINUX ] && return
 
     mkdir -p $CACHE/$LAPP_VERSION
-    [ -d $CACHE/$LAPP_VERSION/lapp-linux ] || git clone https://github.com/CDSoft/lapp $CACHE/$LAPP_VERSION/lapp-linux
+    [ -d $CACHE/$LAPP_VERSION/lapp-linux ] || git clone . $CACHE/$LAPP_VERSION/lapp-linux
     ( cd $CACHE/$LAPP_VERSION/lapp-linux && git checkout master && git fetch && git rebase && git checkout $LAPP_VERSION && git submodule sync && git submodule update --init --recursive )
 
     ( cd $CACHE/$LAPP_VERSION/lapp-linux && make all linux )
@@ -63,10 +63,10 @@ build_win()
     [ -f $RELEASE/$ARCHIVE_WINDOWS ] && return
 
     mkdir -p $CACHE/$LAPP_VERSION
-    [ -d $CACHE/$LAPP_VERSION/lapp-win ] || git clone https://github.com/CDSoft/lapp $CACHE/$LAPP_VERSION/lapp-win
+    [ -d $CACHE/$LAPP_VERSION/lapp-win ] || git clone . $CACHE/$LAPP_VERSION/lapp-win
     ( cd $CACHE/$LAPP_VERSION/lapp-win && git checkout master && git fetch && git rebase && git checkout $LAPP_VERSION && git submodule sync && git submodule update --init --recursive )
 
-    ( cd $PWD/$CACHE/$LAPP_VERSION/lapp-win && make all windows )
+    ( cd $CACHE/$LAPP_VERSION/lapp-win && make all windows )
 
     cp $CACHE/$LAPP_VERSION/lapp-win/.build/win/lapp-*.zip $RELEASE/$ARCHIVE_WINDOWS
 }
@@ -85,7 +85,7 @@ build_pi()
     mkdir -p $CACHE
 
     mkdir -p $CACHE/$LAPP_VERSION
-    [ -d $CACHE/$LAPP_VERSION/lapp-pi ] || git clone https://github.com/CDSoft/lapp $CACHE/$LAPP_VERSION/lapp-pi
+    [ -d $CACHE/$LAPP_VERSION/lapp-pi ] || git clone . $CACHE/$LAPP_VERSION/lapp-pi
     ( cd $CACHE/$LAPP_VERSION/lapp-pi && git checkout master && git fetch && git rebase && git checkout $LAPP_VERSION && git submodule sync && git submodule update --init --recursive )
 
     local PI_BUILD=/tmp/lapp_build
@@ -102,7 +102,7 @@ rm -f $INDEX
 
 index "# lapp releases"
 
-for version in 0.8 0.8.1
+for version in 0.8 0.8.1 0.8.2
 do
 
     index "## lapp $version"

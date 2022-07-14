@@ -24,12 +24,11 @@ INSTALL_PATH = $(firstword $(wildcard $(PREFIX) $(HOME)/.local/bin $(HOME)/bin))
 BUILD = .build
 CACHE = .cache
 
-ifeq ($(shell which musl-gcc 2>/dev/null),)
-HAS_MUSL = 0
-CC = gcc
+ifneq ($(shell which musl-gcc 2>/dev/null),)
+CC = musl-gcc -static
+CC_LIB = -static
 else
-HAS_MUSL = 1
-CC = musl-gcc
+CC = gcc
 endif
 
 MINGW_CC = x86_64-w64-mingw32-gcc
@@ -188,9 +187,6 @@ CC_INC += -I$(BUILD)/linux/lua-$(LUA_VERSION)/src
 CC_INC += -I$(BUILD)/linux
 CC_INC += -I$(LZ4_INC)
 CC_INC += $(patsubst %,-I%,$(STDLIBS_INC))
-ifeq ($(HAS_MUSL),1)
-CC_LIB = -static
-endif
 CC_LIB += -lm -ldl -lrt
 
 LIBLUAW = $(BUILD)/win/lua-$(LUA_VERSION)/src/liblua.a
@@ -266,8 +262,8 @@ distclean: clean
 # install on Linux only
 install: $(LAPP) $(LUAX)
 	@test -n "$(INSTALL_PATH)" || (echo "No installation path found" && false)
-	install -T $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
-	install -T $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
+	install $(LAPP) $(INSTALL_PATH)/$(notdir $(LAPP))
+	install $(LUAX) $(INSTALL_PATH)/$(notdir $(LUAX))
 
 test: $(BUILD)/test/ok.bytecode.lc
 test: $(BUILD)/test/ok.host_linux_target_linux
