@@ -37,7 +37,7 @@ function fs.is_dir(name)
 end
 
 function fs.mkdirs(path)
-    if fs.stat(path) then return end
+    if path == "" or fs.stat(path) then return end
     fs.mkdirs(fs.dirname(path))
     fs.mkdir(path)
 end
