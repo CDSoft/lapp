@@ -102,7 +102,7 @@ rm -f $INDEX
 
 index "# lapp releases"
 
-for version in 0.8 0.8.1 0.8.2 0.8.3
+for version in 0.8 0.8.1 0.8.2 0.8.3 0.8.4
 do
 
     index "## lapp $version"

@@ -150,10 +150,14 @@ CC_OPT += -Werror=missing-prototypes
 CC_OPT += -Wno-declaration-after-statement
 endif
 
+STRIP = strip --strip-all --remove-section=.comment --remove-section=.note
+
 MINGW_OPT = $(CC_OPT)
 ifneq ($(CHECKS),OFF)
 MINGW_OPT += -Wno-error=attributes
 endif
+
+MINGW_STRIP = x86_64-w64-mingw32-strip --strip-all --remove-section=.comment --remove-section=.note
 
 ifneq ($(CHECKS),OFF)
 $(BUILD)/%/.build/lpeg-$(LPEG_VERSION)/lpcode.o: CC_OPT += -Wno-error=switch-enum -Wno-error=implicit-fallthrough
@@ -428,20 +432,24 @@ $(BUILD)/win/%.o: $(BUILD)/%.c $(LIBLUAW) $(VERSION_H)
 $(LRUN): $(LRUN_OBJ) $(LIBLUA) $(LZ4_OBJ)
 	@$(call cyan,"LD",$@)
 	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+	@$(STRIP) $@
 
 $(LRUNW): $(LRUNW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 	@$(call cyan,"LD",$@)
 	@$(MINGW_CC) $(MINGW_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(MINGW_STRIP) $@
 
 # lapp link
 
 $(LAPP): $(LAPP_OBJ) $(LIBLUA) $(LZ4_OBJ)
 	@$(call cyan,"LD",$@)
 	@$(CC) $(CC_OPT) $(CC_INC) $^ $(CC_LIB) -o $@
+	@$(STRIP) $@
 
 $(LAPPW): $(LAPPW_OBJ) $(LIBLUAW) $(LZ4W_OBJ)
 	@$(call cyan,"LD",$@)
 	@$(MINGW_CC) $(MINGW_OPT) $(MINGW_CC_INC) $^ $(MINGW_CC_LIB) -o $@
+	@$(MINGW_STRIP) $@
 
 # Runtime blob creation
 
