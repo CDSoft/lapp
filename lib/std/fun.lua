@@ -89,6 +89,12 @@ function fun.flatten(...)
     return xs
 end
 
+function fun.replicate(n, x)
+    local xs = {}
+    for _ = 1, n do table.insert(xs, x) end
+    return xs
+end
+
 function fun.compose(...)
     local n = select("#", ...)
     local fs = {...}
@@ -108,6 +114,15 @@ function fun.map(f, xs)
     return ys
 end
 
+function fun.tmap(f, t)
+    if type(f) == "table" and type(t) == "function" then f, t = t, f end
+    local t2 = {}
+    for k, v in fun.pairs(t) do
+        t2[k] = (f(v, k))
+    end
+    return t2
+end
+
 function fun.filter(p, xs)
     if type(p) == "table" and type(xs) == "function" then p, xs = xs, p end
     local ys = {}
@@ -117,10 +132,25 @@ function fun.filter(p, xs)
     return ys
 end
 
+function fun.tfilter(p, t)
+    if type(p) == "table" and type(t) == "function" then p, t = t, p end
+    local t2 = {}
+    for k, v in fun.pairs(t) do
+        if p(v, k) then t2[k] = v end
+    end
+    return t2
+end
+
 function fun.foreach(xs, f)
     if type(f) == "table" and type(xs) == "function" then f, xs = xs, f end
     for i, x in ipairs(xs) do f(x, i) end
 end
+
+function fun.tforeach(t, f)
+    if type(f) == "table" and type(t) == "function" then f, t = t, f end
+    for k, v in fun.pairs(t) do f(v, k) end
+end
+
 
 function fun.prefix(pre)
     return function(s) return pre..s end

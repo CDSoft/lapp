@@ -49,8 +49,10 @@ return function()
     eq(fun.concat({1,2,3}, {4}, {5, 6}), {1, 2, 3, 4, 5, 6})
     eq(fun.merge({a=1, b=2}, {c=3}, {b=4, d=5}), {a=1, b=4, c=3, d=5})
     eq(fun.flatten({1,{2},{{3,4},5},{{{{6}}}}}), {1,2,3,4,5,6})
+    eq(fun.replicate(3, 42), {42, 42, 42})
 
     eq(fun.compose(function(x) return x+1 end, function(x) return 2*x end)(42), 85)
+
     eq(fun.map(function(x) return x+10 end, {1,2,3,4}), {11, 12, 13, 14})
     eq(fun.map({1,2,3,4}, function(x) return x+10 end), {11, 12, 13, 14})
     eq(fun.filter(function(x) return x%2==0 end, {1,2,3,4}), {2, 4})
@@ -59,6 +61,20 @@ return function()
         local t = {}
         fun.foreach({1,2,3,4}, function(x) table.insert(t, "test 1 iteration "..x) end)
         fun.foreach(function(x) table.insert(t, "test 2 iteration "..x) end, {1,2,3,4})
+        eq(t, {
+            "test 1 iteration 1", "test 1 iteration 2", "test 1 iteration 3", "test 1 iteration 4",
+            "test 2 iteration 1", "test 2 iteration 2", "test 2 iteration 3", "test 2 iteration 4",
+        })
+    end
+
+    eq(fun.tmap(function(x) return x+10 end, {a=1,b=2,c=3,d=4}), {a=11,b=12,c=13,d=14})
+    eq(fun.tmap({a=1,b=2,c=3,d=4}, function(x) return x+10 end), {a=11,b=12,c=13,d=14})
+    eq(fun.tfilter(function(x) return x%2==0 end, {a=1,b=2,c=3,d=4}), {b=2,d=4})
+    eq(fun.tfilter({a=1,b=2,c=3,d=4}, function(x) return x%2==0 end), {b=2,d=4})
+    do
+        local t = {}
+        fun.tforeach({a=1,b=2,c=3,d=4}, function(x) table.insert(t, "test 1 iteration "..x) end)
+        fun.tforeach(function(x) table.insert(t, "test 2 iteration "..x) end, {1,2,3,4})
         eq(t, {
             "test 1 iteration 1", "test 1 iteration 2", "test 1 iteration 3", "test 1 iteration 4",
             "test 2 iteration 1", "test 2 iteration 2", "test 2 iteration 3", "test 2 iteration 4",

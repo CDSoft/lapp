@@ -120,13 +120,21 @@ local fun = require "fun"
 
 **`fun.flatten(...)`{.lua}** flattens input lists and non list parameters.
 
+**`fun.replicate(n, x)`{.lua}** returns a list containing `n`{.lua} times the Lua object `x`{.lua}.
+
 **`fun.compose(...)`{.lua}** returns a function that composes input functions.
 
-**`fun.map(f, xs)`{.lua}** returns the list of `f(x)`{.lua} for all `x` in `xs`.
+**`fun.map(f, xs)`{.lua}** returns the list of `f(x)`{.lua} for all `x`{.lua} in `xs`{.lua}.
 
-**`fun.filter(p, xs)`{.lua}** returns the list of `x` such that `p(x)`{.lua} is true.
+**`fun.tmap(f, t)`{.lua}** returns the table of `{k = f(t[k])}`{.lua} for all `k`{.lua} in `keys(t)`{.lua}.
+
+**`fun.filter(p, xs)`{.lua}** returns the list of `x`{.lua} such that `p(x)`{.lua} is true.
+
+**`fun.tfilter(p, t)`{.lua}** returns the table of `{k = v}`{.lua} for all `k`{.lua} in `keys(t)` such that `p(v)`{.lua} is true.
 
 **`fun.foreach(xs, f)`{.lua}** executes `f(x)`{.lua} for all `x` in `xs`.
+
+**`fun.tforeach(t, f)`{.lua}** executes `f(t[k])`{.lua} for all `k`{.lua} in `keys(t)`{.lua}.
 
 **`fun.prefix(pre)`{.lua}** returns a function that adds a prefix `pre` to a string.
 
