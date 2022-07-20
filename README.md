@@ -179,10 +179,19 @@ directory). If `reverse` is true, the list is built in a reverse order
 
 **`fs.mkdir(path)`{.lua}** creates a new directory `path`.
 
+**`fs.mkdirs(path)`{.lua}** creates a new directory `path` and its parent
+directories.
+
 **`fs.rename(old_name, new_name)`{.lua}** renames the file `old_name` to
 `new_name`.
 
+**`fs.mv(old_name, new_name)`{.lua}** alias for `fs.rename(old_name, new_name)`{.lua}.
+
 **`fs.remove(name)`{.lua}** deletes the file `name`.
+
+**`fs.rm(name)`{.lua}** alias for `fs.remove(name)`{.lua}.
+
+**`fs.rmdir(path, [params])`{.lua}** deletes the directory `path`{.lua} (recursively if `params.recursive`{.lua} is `true`{.lua}.
 
 **`fs.copy(source_name, target_name)`{.lua}** copies file `source_name` to
 `target_name`. The attributes and times are preserved.
@@ -231,6 +240,10 @@ modification time of file `name` with the times of file `other_name`.
 
 **`fs.join(...)`{.lua}** return a path name made of several path components
 (separated by `fs.sep`).
+
+**`fs.with_tmpfile(f)`{.lua}** calls `f(tmp)`{.lua} where `tmp`{.lua} is the name of a temporary file.
+
+**`fs.with_tmpdir(f)`{.lua}** calls `f(tmp)`{.lua} where `tmp`{.lua} is the name of a temporary directory.
 
 **`fs.sep`{.lua}** is the directory separator (`/` or `\\`).
 

@@ -21,6 +21,7 @@ http://cdelord.fr/lapp
 local fs = require "fs"
 
 local flatten = require"fun".flatten
+local foreach = require"fun".foreach
 
 function fs.join(...)
     return table.concat({...}, fs.sep)
@@ -40,6 +41,15 @@ function fs.mkdirs(path)
     if path == "" or fs.stat(path) then return end
     fs.mkdirs(fs.dirname(path))
     fs.mkdir(path)
+end
+
+fs.mv = fs.rename
+
+fs.rm = fs.remove
+
+function fs.rmdir(path)
+    foreach(fs.walk(path, true), fs.rm)
+    return fs.rm(path)
 end
 
 -- fs.walk(path) iterates over the file names in path and its subdirectories
@@ -72,4 +82,18 @@ function fs.walk(path, reverse)
         end
     end
     return flatten(reverse and {acc_files, acc_dirs} or {acc_dirs, acc_files})
+end
+
+function fs.with_tmpfile(f)
+    local tmp = os.tmpname()
+    f(tmp)
+    fs.rm(tmp)
+end
+
+function fs.with_tmpdir(f)
+    local tmp = os.tmpname()
+    fs.rm(tmp)
+    fs.mkdir(tmp)
+    f(tmp)
+    fs.rmdir(tmp)
 end

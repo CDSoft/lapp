@@ -43,6 +43,9 @@ return function()
 
     eq(fs.getcwd(), cwd)
 
+    eq(fs.mv, fs.rename)
+    eq(fs.rm, fs.remove)
+
     local tmp = fs.join(cwd, ".build", "test", "fs")
     eq(tmp, cwd..fs.sep..".build"..fs.sep.."test"..fs.sep.."fs")
     fun.foreach(fs.walk(tmp, true), fs.remove)
@@ -172,7 +175,6 @@ return function()
 
     eq(fs.sep, sys.platform == "Windows" and "\\" or "/")
 
-    fun.foreach(fs.walk(tmp, true), fs.remove)
-    fs.remove(tmp)
+    eq(fs.rmdir(tmp), true)
 
 end
