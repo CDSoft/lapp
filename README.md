@@ -1,5 +1,10 @@
 # Lua Application packager
 
+> [!WARNING]
+> This repository is no longer maintained and has been archived.
+>
+> Please consider using [LuaX](https://github.com/CDSoft/luax) instead.
+
 `lapp` packs Lua scripts together along with a Lua interpretor (Lua 5.4.4) and
 produces a standalone executable for Linux and Windows.
 
